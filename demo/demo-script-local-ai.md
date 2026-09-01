@@ -12,7 +12,7 @@ We’re running on a single Quadro P2000. No overclocking, no voltage tweaks
 
 ## GPU handoff in action
 
-At 00:17:39, Father Fox sends a normal request to Lemonade. The model loads, processes, and returns a response. At 00:18:08, Father Fox tells Lemonade to unload – the POST /v1/unload call. Lemonade frees the VRAM, and by 00:18:12 the RVC special‑voice workload grabs the GPU. The RVC/Father Fox request completes successfully at 00:18:28. The verified return to Lemonade begins at 00:20:15, with the next request completing cleanly at 00:20:46. Both sides of the handoff completed successfully.
+At 00:17:39, Father Fox sends a normal request to Lemonade. The model loads, processes, and returns a response. At 00:18:08, Father Fox tells Lemonade to unload – the POST /v1/unload call. By 00:18:12, Lemonade has released its VRAM for the RVC special-voice workload. The RVC/Father Fox request completes successfully at 00:18:28. The verified return to Lemonade begins at 00:20:15, with the next request completing cleanly at 00:20:46. Both sides of the handoff completed successfully.
 
 ## Resource Governor
 

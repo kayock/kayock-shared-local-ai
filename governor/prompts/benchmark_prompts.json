@@ -1,0 +1,20 @@
+[
+  {
+    "id": "short_greeting",
+    "messages": [
+      {"role": "user", "content": "Say hello in exactly one short sentence."}
+    ]
+  },
+  {
+    "id": "factual_brief",
+    "messages": [
+      {"role": "user", "content": "What is photosynthesis? Answer in two sentences."}
+    ]
+  },
+  {
+    "id": "reasoning_light",
+    "messages": [
+      {"role": "user", "content": "If I have 3 apples and buy 5 more, how many do I have? One sentence."}
+    ]
+  }
+]

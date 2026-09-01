@@ -107,8 +107,9 @@ kayock-shared-local-ai/
 ├── evidence/
 │   ├── verified-tests/   # runtime journal excerpts
 │   └── sanitized-logs/
-└── governor/             # PLANNED — AI Resource Governor
-    └── README.md
+└── governor/             # AI Resource Governor (experimental on governor-v0.1)
+    ├── README.md
+    └── ...               # python -m governor CLI
 ```
 
 ## Quick Start (Reference)
@@ -129,9 +130,27 @@ Follow [`docs/demo-script.md`](docs/demo-script.md) for a 2–3 minute contest v
 
 Verified on a **NVIDIA Quadro P2000 (4 GB VRAM)**. Lemonade serves `gpt-oss-20b-MXFP4`; RVC character voices require a separate GPU allocation — coordinated via explicit unload.
 
-## Future Work
+## Kayock AI Resource Governor (governor-v0.1 branch)
 
-The [Kayock AI Resource Governor](governor/README.md) (**PLANNED / FUTURE**) will centralize VRAM monitoring, app priority, and safe benchmarking. Whispeer and NOMAD are documented as potential future Lemonade clients — not demonstrated in this repository.
+**VERIFIED** telemetry, benchmark harness, and corrected THROUGHPUT optimizer on live Lemonade (`gpt-oss-20b-MXFP4`).
+
+| Evidence | Result |
+|----------|--------|
+| Benchmark harness | avg TTFT 7.15 s, TPS 7.01 — [`governor/evidence/benchmark-results-2026-09-01.md`](governor/evidence/benchmark-results-2026-09-01.md) |
+| THROUGHPUT optimizer | **+4.22%** score → `{480, 0.7}` — [`governor/evidence/throughput-optimization-2026-09-01.md`](governor/evidence/throughput-optimization-2026-09-01.md) |
+
+An order-dependent global-best bug was found during live testing and fixed in commit `d682462`.
+
+```bash
+pip install -r governor/requirements.txt
+export LEMONADE_API_KEY="your-local-key"
+python -m governor status
+python -m governor optimize --profile THROUGHPUT
+```
+
+See [`governor/README.md`](governor/README.md) for architecture, safety model, and commands.
+
+Whispeer and NOMAD remain **PLANNED / FUTURE** Lemonade clients — not demonstrated in this repository.
 
 ## License
 

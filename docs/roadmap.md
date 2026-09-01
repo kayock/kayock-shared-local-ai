@@ -26,7 +26,15 @@ Legacy RAG backend for named collections; separate from Lemonade demo path.
 
 ### Kayock AI Resource Governor
 
-Centralized VRAM monitoring, app priority, safe benchmarking, rollback. See [`governor/README.md`](../governor/README.md).
+**IMPLEMENTED BUT EXPERIMENTAL** on branch `governor-v0.1`:
+
+- [x] Telemetry CLI (`python -m governor status`)
+- [x] Benchmark harness (requires API key + live Lemonade)
+- [x] Deterministic optimizer (per-request params only)
+- [x] Handoff state observer
+- [x] Local dashboard
+- [ ] Load-time ctx-size auto-apply (PLANNED)
+- [ ] Father Fox opt-in integration (PLANNED)
 
 ### Formal Benchmarks
 

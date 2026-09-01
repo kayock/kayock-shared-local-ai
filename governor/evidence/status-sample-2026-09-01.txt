@@ -1,0 +1,31 @@
+# Governor Status Output (Live Machine)
+
+**Classification: VERIFIED** — captured 2026-09-01 from `python -m governor status` on Quadro P2000.
+
+No `LEMONADE_API_KEY` in shell; GPU/system telemetry only.
+
+```
+KAYOCK AI RESOURCE GOVERNOR — STATUS
+========================================
+GPU
+  Name:         Quadro P2000
+  Utilization:  0 %
+  VRAM used:    3191 MiB
+  VRAM free:    842 MiB
+  Temperature:  44 °C
+  Clock:        139 MHz
+  Power draw:   unavailable W
+  Power limit:  unavailable W
+  Throttle:     Idle
+
+SYSTEM
+  CPU:          2.5 %
+  RAM:          7898 / 46671 MiB (16.9 %)
+
+LEMONADE
+  Online:       False
+  Auth:         False
+  Error:        LEMONADE_API_KEY not set
+```
+
+Lemonade HTTP checks require `LEMONADE_API_KEY` in the environment. Father Fox loads this from a protected system env file not readable by the Governor test shell.

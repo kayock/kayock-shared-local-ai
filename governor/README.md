@@ -1,10 +1,10 @@
 # Kayock AI Resource Governor
 
-> **Status: Future work.** Nothing in this directory is implemented. This document describes a planned self-optimizer for shared local-AI workloads on constrained GPU hardware.
+> **Status: PLANNED / FUTURE.** Nothing in this directory is implemented.
 
 ## Problem
 
-Today, each application (Father Fox, Whispeer, etc.) manages GPU handoff independently — calling Lemonade's `/v1/unload` before loading RVC, sleeping a fixed grace period, and hoping the next request reloads cleanly. This works but lacks:
+Today, Father Fox manages GPU handoff independently — calling Lemonade's `/v1/unload` before loading RVC, sleeping a fixed grace period, then relying on automatic reload on the next chat request. Runtime evidence confirms this works (2026-09-01 journal), but the approach lacks:
 
 - Centralized visibility into VRAM, TTFT, and TPS
 - Coordinated scheduling across multiple apps
@@ -19,8 +19,7 @@ The **Kayock AI Resource Governor** sits between applications and Lemonade as a 
 flowchart TB
     subgraph Apps
         FF["Father Fox"]
-        WH["Whispeer"]
-        OT["Other local apps"]
+        OT["Future local apps"]
     end
 
     subgraph Governor["AI Resource Governor (planned)"]
@@ -36,7 +35,6 @@ flowchart TB
     end
 
     FF --> Governor
-    WH --> Governor
     OT --> Governor
     Governor --> LM
     LM --> GPU
@@ -62,7 +60,7 @@ flowchart TB
 
 ### App Priority
 
-Interactive voice (Father Fox) should preempt background social-agent drafting (Whispeer). Priority tiers would influence unload decisions and queue ordering.
+Interactive voice (Father Fox) should preempt lower-priority background tasks from future clients. Priority tiers would influence unload decisions and queue ordering.
 
 ### Unload / Reload Policy
 

@@ -1,77 +1,78 @@
 # Architecture
 
-Kayock Shared Local AI is a documentation and reference repository describing how multiple independent applications share one AMD Lemonade inference server on a single machine with limited GPU memory.
+Kayock Shared Local AI documents how **Lemonade inference and specialized RVC workloads dynamically share constrained local GPU resources** on a single machine.
+
+## What This Repository Demonstrates
+
+**Verified today:** Father Fox Voice Hub (Lemonade LLM) + Kayock Voice RVC (character voices) coordinating on one 4 GB GPU.
+
+**Not demonstrated here:** Whispeer, NOMAD, or other additional Lemonade clients. Those are documented as **PLANNED / FUTURE** integration targets.
 
 ## Design Principles
 
-1. **One Lemonade server** — A single Lemonade process serves all LLM requests on the default port `13305`.
-2. **Independent applications** — Each app (Father Fox, Whispeer, etc.) is a separate process with its own HTTP interface. They do not share code or state.
-3. **Explicit GPU coordination** — When a GPU-heavy workload (RVC voice conversion) needs VRAM, applications call Lemonade's unload API before proceeding.
-4. **No cloud dependency** — All inference runs locally via Lemonade and companion services.
+1. **Lemonade as runtime layer** — OpenAI-compatible local API (`/v1/chat/completions`, `/v1/unload`). Hardware-agnostic; verified on NVIDIA, compatible with AMD via Lemonade.
+2. **Explicit GPU coordination** — Applications call Lemonade's unload API before loading a competing GPU workload.
+3. **No cloud dependency** — Verified session used only local services.
+4. **Reusable pattern** — Reference clients in `integrations/` for adoption by future apps.
 
 ## Component Map
 
-| Component | Role | Default Endpoint | Verified |
-|-----------|------|------------------|----------|
-| AMD Lemonade | LLM inference (`gpt-oss-20b-MXFP4`) | `http://127.0.0.1:13305` | Yes (Father Fox source) |
-| Father Fox Voice Hub | Speech → Whisper → LLM → TTS | `:8765` | Yes |
-| Kayock Voice (RVC) | Character voice synthesis | `https://127.0.0.1:8766/speak` | Referenced in Father Fox |
-| Whispeer | Social agent (planned integration) | Unknown | **Not found locally** |
-| NOMAD / Ollama | RAG collections (non–Model Only) | `http://10.0.0.202:8080` | Legacy path in Father Fox |
+| Component | Role | Endpoint | Evidence |
+|-----------|------|----------|----------|
+| Lemonade | LLM inference (`gpt-oss-20b-MXFP4`) | `http://127.0.0.1:13305` | Runtime log + source |
+| Father Fox Voice Hub | Speech → Whisper → LLM → TTS | `:8765` | Runtime log + source |
+| Kayock Voice (RVC) | Character voice synthesis | `https://127.0.0.1:8766/speak` | Runtime log + source |
+| NOMAD / Ollama | RAG collections (non–Model Only) | `http://<nomad-host>:8080` | Source only; not Lemonade |
+| Whispeer | Social agent | — | **PLANNED / FUTURE** |
 
-## Shared Lemonade Architecture
+## Verified Architecture
 
 ```mermaid
 flowchart LR
-    subgraph Clients
-        A1["Father Fox<br/>Model Only path"]
-        A2["Whispeer<br/>(not verified)"]
+    subgraph Verified
+        FF["Father Fox<br/>Model Only path"]
+        RVC["Kayock Voice RVC"]
     end
 
-    subgraph Lemonade["AMD Lemonade :13305"]
-        API["OpenAI-compatible API"]
-        UNL["POST /v1/unload"]
+    subgraph Lemonade["Lemonade :13305"]
         CHAT["POST /v1/chat/completions"]
+        UNL["POST /v1/unload"]
     end
 
-    subgraph GPU["Quadro P2000 — 4 GB"]
+    subgraph GPU["4 GB VRAM"]
         VRAM["Resident model slot"]
     end
 
-    A1 --> CHAT
-    A2 -.-> CHAT
-    A1 --> UNL
+    FF --> CHAT
+    FF --> UNL
+    FF --> RVC
     CHAT --> VRAM
     UNL --> VRAM
+    RVC --> VRAM
 ```
 
 ## Father Fox Request Routing
 
-Father Fox routes LLM requests based on the selected knowledge collection:
+**VERIFIED FROM SOURCE CODE** — Father Fox routes by knowledge collection:
 
-- **`Model Only`** → Lemonade directly (`/v1/chat/completions` with `gpt-oss-20b-MXFP4`)
-- **Named collections** (electronics, health, etc.) → NOMAD/Ollama RAG backend (unchanged legacy path)
-
-This split is visible in `ask_father_fox()` in the Father Fox source. Only the Model Only path uses Lemonade.
+- **`Model Only`** → Lemonade (`/v1/chat/completions` with `gpt-oss-20b-MXFP4`)
+- **Named collections** → NOMAD/Ollama RAG at `http://<nomad-host>:8080/api/ollama/chat` (legacy; not part of Lemonade demo)
 
 ## Environment Configuration
-
-Father Fox reads these environment variables (defaults shown):
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `LEMONADE_URL` | `http://127.0.0.1:13305` | Lemonade base URL |
-| `LEMONADE_API_KEY` | *(empty — required)* | Bearer token for Lemonade API |
-| `LEMONADE_MODEL` | `gpt-oss-20b-MXFP4` | Model identifier for chat and unload |
+| `LEMONADE_API_KEY` | *(required)* | Bearer token |
+| `LEMONADE_MODEL` | `gpt-oss-20b-MXFP4` | Model for chat and unload |
 
 ## Concurrency
 
-Father Fox uses an `asyncio.Lock` (`model_lock`) around the talk pipeline to serialize Whisper transcription, LLM calls, and voice generation per request. This prevents overlapping GPU-sensitive operations within a single Father Fox instance.
+Father Fox serializes the talk pipeline with `asyncio.Lock` (`model_lock`) to prevent overlapping GPU-sensitive operations.
 
 ## Source References
 
-All verified architecture claims trace to:
+- `/home/kayock/father-fox-hub/app.py` (read-only)
+- Runtime journal: [`evidence/verified-tests/2026-09-01-father-fox-journal.md`](../evidence/verified-tests/2026-09-01-father-fox-journal.md)
 
-- `/home/kayock/father-fox-hub/app.py` (read-only inspection, September 2026)
-
-No modifications were made to existing applications during this documentation effort.
+No live applications were modified.

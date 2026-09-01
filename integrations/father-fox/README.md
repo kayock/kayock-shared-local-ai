@@ -36,7 +36,7 @@ Authorization: Bearer {LEMONADE_API_KEY}
 Father Fox routes by collection name:
 
 - `Model Only` → Lemonade (this integration)
-- Any named collection → `http://10.0.0.202:8080/api/ollama/chat` (legacy RAG)
+- Any named collection → `http://<nomad-host>:8080/api/ollama/chat` (legacy RAG; not demonstrated)
 
 ## Source Marker
 

@@ -20,7 +20,7 @@ If you discover a security issue in materials published here, please report it p
 
 ## Handling Credentials in Local Deployments
 
-Applications that call Lemonade (Father Fox, Whispeer, and others) read credentials from environment variables such as `LEMONADE_API_KEY`. These values belong in your local environment or secret store — never in this repository.
+Applications that call Lemonade (e.g., Father Fox) read credentials from environment variables such as `LEMONADE_API_KEY`. These values belong in your local environment or secret store — never in this repository.
 
 ## Sanitized Evidence
 

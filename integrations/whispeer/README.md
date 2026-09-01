@@ -1,37 +1,24 @@
 # Whispeer Integration
 
-## Status: Not Found Locally
+## Status: PLANNED / FUTURE
 
-Whispeer was expected to integrate with the shared Lemonade server as a second independent application. At repository creation time:
+Whispeer is **not demonstrated** in this contest submission. No source code exists on this machine.
 
 | Check | Result |
 |-------|--------|
-| `/home/kayock/kayock-social-agent` | **Directory does not exist** |
-| `Whispeer` / `whispeer` in `/home/kayock` source | **No matches** |
-| Lemonade client code for Whispeer | **Not available** |
+| `/home/kayock/kayock-social-agent` | Directory does not exist |
+| Whispeer Lemonade client | Not available |
 
-## Intended Pattern
+## Intended Pattern (Not Verified)
 
-When Whispeer source becomes available, the integration should follow the same pattern as Father Fox:
+When Whispeer source becomes available, it would follow the same Lemonade client pattern as Father Fox (`POST /v1/chat/completions`). No reference code is included here to avoid unverified claims.
 
-```python
-# Expected pattern (not verified — illustrative only)
-POST {LEMONADE_URL}/v1/chat/completions
-Authorization: Bearer {LEMONADE_API_KEY}
+## Contest Scope
 
-{
-  "model": "gpt-oss-20b-MXFP4",
-  "messages": [...],
-  "stream": false
-}
-```
-
-## Placeholder
-
-No reference code is included here because no Whispeer source was found to extract from. This avoids inventing integration details that cannot be verified.
+This repository demonstrates **Father Fox + RVC GPU handoff with Lemonade** only. Whispeer is mentioned as a potential future client in the architecture docs.
 
 ## Next Steps
 
-1. Locate or deploy `kayock-social-agent` / Whispeer source
-2. Extract a minimal Lemonade client (mirror `integrations/father-fox/lemonade_chat.py`)
-3. Update [`docs/integrations.md`](../../docs/integrations.md) and [`docs/contest-evidence.md`](../../docs/contest-evidence.md)
+1. Deploy `kayock-social-agent` / Whispeer source locally
+2. Extract a minimal Lemonade client mirroring `integrations/father-fox/lemonade_chat.py`
+3. Update `docs/integrations.md` with runtime evidence

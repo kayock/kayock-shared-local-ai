@@ -1,79 +1,71 @@
 # Integrations
 
-Overview of how each application connects to the shared Lemonade server.
+This repository **demonstrates** Father Fox + RVC GPU handoff with Lemonade. Other clients are listed only as future integration targets unless evidence appears locally.
 
-## Father Fox Voice Hub
+## Father Fox Voice Hub — DEMONSTRATED
 
 | Property | Value |
 |----------|-------|
-| Status | **Verified in source** |
-| Location | `/home/kayock/father-fox-hub/app.py` |
+| Evidence | **VERIFIED FROM RUNTIME LOG** + source |
+| Location | `/home/kayock/father-fox-hub/app.py` (read-only) |
 | Port | `8765` |
-| Lemonade path | `Model Only` collection → `/v1/chat/completions` |
-| Model | `gpt-oss-20b-MXFP4` (via `LEMONADE_MODEL`) |
+| Lemonade path | `Model Only` → `/v1/chat/completions` |
+| Model | `gpt-oss-20b-MXFP4` |
 | GPU handoff | Yes — special RVC voices |
 
-Father Fox is a FastAPI voice assistant: microphone audio → Faster Whisper (CPU) → LLM → Kokoro or RVC TTS.
+Father Fox: microphone audio → Faster Whisper (CPU) → Lemonade LLM → Kokoro or RVC TTS.
 
-Reference code: [`integrations/father-fox/`](../integrations/father-fox/)
+Reference: [`integrations/father-fox/`](../integrations/father-fox/)
 
-## Whispeer
-
-| Property | Value |
-|----------|-------|
-| Status | **Not found on this machine** |
-| Expected path | `/home/kayock/kayock-social-agent` (does not exist) |
-| Lemonade integration | **Unverified** |
-
-A search of `/home/kayock` found no files matching `Whispeer`, `whispeer`, or `kayock-social-agent`. The integrations directory contains a placeholder describing the intended pattern.
-
-Reference: [`integrations/whispeer/`](../integrations/whispeer/)
-
-## Kayock Voice (RVC)
+## Kayock Voice (RVC) — DEMONSTRATED
 
 | Property | Value |
 |----------|-------|
-| Status | **Referenced by Father Fox** (not copied here) |
+| Evidence | **VERIFIED FROM RUNTIME LOG** (`POST /api/talk 200 OK`) |
 | Endpoint | `https://127.0.0.1:8766/speak` |
 | Role | Character voice synthesis after Lemonade unload |
 
-Father Fox calls this service after releasing Lemonade VRAM. The RVC service itself is not part of this repository.
+Father Fox calls this service after releasing Lemonade VRAM. The RVC service is not copied into this repository.
 
-## NOMAD / Ollama (Legacy RAG)
+## Whispeer — PLANNED / FUTURE
 
-Father Fox still routes named knowledge collections to a separate backend:
+| Property | Value |
+|----------|-------|
+| Status | **Not demonstrated** — source absent on this machine |
+| Expected path | `/home/kayock/kayock-social-agent` (does not exist) |
+
+No Whispeer Lemonade integration is claimed in this contest submission. Placeholder: [`integrations/whispeer/`](../integrations/whispeer/)
+
+## NOMAD / Ollama — LEGACY (NOT LEMONADE)
+
+Father Fox routes named knowledge collections to a separate RAG backend:
 
 ```
-http://10.0.0.202:8080/api/ollama/chat
+http://<nomad-host>:8080/api/ollama/chat
 ```
 
-This path does **not** use Lemonade. It is preserved for RAG-backed conversations (electronics, health, programming, etc.).
+This path does **not** use Lemonade and is **not demonstrated** in the contest demo. Documented for architectural completeness only.
 
-## Integration Comparison
+## Verified Integration Flow
 
 ```mermaid
 flowchart TD
-    subgraph Verified
-        FF["Father Fox"]
-        FF -->|"Model Only"| L["Lemonade"]
-        FF -->|"Collections"| N["NOMAD/Ollama"]
-        FF -->|"Special voices"| R["Kayock Voice RVC"]
-        FF -->|"Before RVC"| U["Lemonade /v1/unload"]
-    end
+    FF["Father Fox"]
+    L["Lemonade"]
+    R["Kayock Voice RVC"]
 
-    subgraph Unverified
-        WH["Whispeer"]
-        WH -.->|"expected"| L
-    end
+    FF -->|"Model Only"| L
+    FF -->|"Before special RVC voice"| L
+    FF -->|"POST /v1/unload"| L
+    FF -->|"Character voice"| R
 ```
 
-## Adding a New Application
+## Adding a Future Client
 
-Any new local app can share Lemonade by:
+**PLANNED / FUTURE** — any new local app could share Lemonade by:
 
-1. Setting `LEMONADE_URL`, `LEMONADE_API_KEY`, and `LEMONADE_MODEL`
+1. Setting `LEMONADE_URL`, `LEMONADE_API_KEY`, `LEMONADE_MODEL`
 2. Calling `POST /v1/chat/completions` for inference
 3. Calling `POST /v1/unload` before loading another GPU-heavy model
-4. Relying on Lemonade to reload on the next chat request
 
-See the [AI Resource Governor](../governor/README.md) for planned centralized scheduling (future work).
+See [`governor/README.md`](../governor/README.md) for planned centralized scheduling.

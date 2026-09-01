@@ -1,65 +1,39 @@
 # Roadmap
 
-## Completed (Verified in Father Fox Source)
+## Completed — Demonstrated in This Repository
 
-- [x] Lemonade chat completions for `Model Only` conversations
-- [x] Default model `gpt-oss-20b-MXFP4`
+- [x] Lemonade chat completions for `Model Only` (`gpt-oss-20b-MXFP4`)
 - [x] `POST /v1/unload` before special RVC voices
-- [x] Legacy Ollama GPU cleanup alongside Lemonade unload
-- [x] 1-second VRAM grace period after unload
+- [x] VRAM release confirmed in runtime journal (2026-09-01)
+- [x] Return to Lemonade on next request (runtime journal 00:20:15)
+- [x] Reference integration examples + contest documentation
 
-## In Progress / Documented Here
+## Contest Submission Ready
 
-- [x] Contest documentation repository (this repo)
-- [x] Reference integration examples extracted from Father Fox
-- [x] Architecture and GPU handoff diagrams
+- [x] Runtime journal evidence in `evidence/verified-tests/`
+- [x] Demo script in `docs/demo-script.md`
+- [x] Public-facing claims scoped to Father Fox + RVC only
 
-## Blocked / Not Found Locally
-
-- [ ] Whispeer Lemonade integration — source at `/home/kayock/kayock-social-agent` not present
-- [ ] `AMD_Lemonade_Contest_Evidence_Log.md` — file not found; cannot attach formal test results
-- [ ] Runtime benchmarks (TTFT, TPS, VRAM measurements) — awaiting evidence log
-
-## Future Work
-
-### Kayock AI Resource Governor
-
-A planned self-optimizer for multi-app GPU sharing. See [`governor/README.md`](../governor/README.md).
-
-Planned capabilities:
-
-| Area | Goal |
-|------|------|
-| TTFT | Minimize time-to-first-token across apps |
-| TPS | Track and optimize tokens per second |
-| VRAM | Monitor and enforce memory budgets |
-| Temperature | Tune per-app inference parameters |
-| Utilization | Balance GPU load across workloads |
-| Context | Right-size context windows per request type |
-| Batch | Coordinate batching where safe |
-| Threads | Tune CPU/GPU thread allocation |
-| App priority | Prefer interactive voice over background tasks |
-| Unload/reload | Centralized handoff policy vs. per-app calls |
-| Safe benchmarking | Non-destructive perf probes with rollback |
-| Scoring | Rank configuration changes by measured improvement |
-| Rollback | Revert failed optimizations automatically |
-
-**Status:** Design only. No implementation exists in this repository.
+## PLANNED / FUTURE
 
 ### Whispeer Integration
 
-When `kayock-social-agent` source becomes available, extract a Lemonade client reference mirroring the Father Fox pattern and update [`integrations/whispeer/`](../integrations/whispeer/).
+Social-agent client — source at `/home/kayock/kayock-social-agent` not present on this machine.
 
-### Centralized Evidence Collection
+### NOMAD as Additional Client
 
-Formal test harness that writes to `evidence/verified-tests/` with sanitized output, replacing ad-hoc log collection.
+Legacy RAG backend for named collections; separate from Lemonade demo path.
 
-### Multi-GPU Support
+### Kayock AI Resource Governor
 
-Current documentation assumes a single Quadro P2000. Governor design should extend to multiple AMD/NVIDIA devices when hardware allows.
+Centralized VRAM monitoring, app priority, safe benchmarking, rollback. See [`governor/README.md`](../governor/README.md).
+
+### Formal Benchmarks
+
+TTFT, TPS, and VRAM measurements — not captured in recovered journal evidence.
 
 ## Non-Goals
 
-- Replacing or modifying existing deployed applications
+- Modifying live deployed applications from this repository
 - Shipping model weights or private RAG data
 - Cloud inference fallback

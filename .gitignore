@@ -63,7 +63,7 @@ Thumbs.db
 cookies*
 *.session
 
-# Certificates (private keys)
-*.csr
-*.srl
-*.mobileconfig
+# Governor runtime data
+governor/data/
+governor/*.db
+governor/.venv/

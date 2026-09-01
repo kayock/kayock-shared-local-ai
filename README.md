@@ -150,6 +150,17 @@ python -m governor optimize --profile THROUGHPUT
 
 See [`governor/README.md`](governor/README.md) for architecture, safety model, and commands.
 
+## Kayock Local AI Trophy Room (trophy-room-v0.1 branch)
+
+**Contest showcase dashboard** at **http://127.0.0.1:8771** — observability only, not an AI runtime.
+
+```bash
+pip install -r trophy-room/requirements.txt
+cd trophy-room && python app.py
+```
+
+Five views: Trophy Room, Model Arena, GPU Handoff, Local AI Clients, Evidence Vault. See [`trophy-room/README.md`](trophy-room/README.md).
+
 Whispeer and NOMAD remain **PLANNED / FUTURE** Lemonade clients — not demonstrated in this repository.
 
 ## License

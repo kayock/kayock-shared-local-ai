@@ -132,16 +132,20 @@ Verified on a **NVIDIA Quadro P2000 (4 GB VRAM)**. Lemonade serves `gpt-oss-20b-
 
 ## Kayock AI Resource Governor (governor-v0.1 branch)
 
-**IMPLEMENTED BUT EXPERIMENTAL** — telemetry and benchmark harness verified on live Lemonade (`gpt-oss-20b-MXFP4`).
+**VERIFIED** telemetry, benchmark harness, and corrected THROUGHPUT optimizer on live Lemonade (`gpt-oss-20b-MXFP4`).
 
-**VERIFIED benchmark (2026-09-01):** avg TTFT 7.15 s, avg TPS 7.01, peak VRAM 3191 MiB, 0 errors. Optimizer candidate comparison not yet persisted — see [`governor/evidence/benchmark-results-2026-09-01.md`](governor/evidence/benchmark-results-2026-09-01.md).
+| Evidence | Result |
+|----------|--------|
+| Benchmark harness | avg TTFT 7.15 s, TPS 7.01 — [`governor/evidence/benchmark-results-2026-09-01.md`](governor/evidence/benchmark-results-2026-09-01.md) |
+| THROUGHPUT optimizer | **+4.22%** score → `{480, 0.7}` — [`governor/evidence/throughput-optimization-2026-09-01.md`](governor/evidence/throughput-optimization-2026-09-01.md) |
+
+An order-dependent global-best bug was found during live testing and fixed in commit `d682462`.
 
 ```bash
 pip install -r governor/requirements.txt
 export LEMONADE_API_KEY="your-local-key"
 python -m governor status
-python -m governor benchmark
-python -m governor optimize --profile LOW_LATENCY
+python -m governor optimize --profile THROUGHPUT
 ```
 
 See [`governor/README.md`](governor/README.md) for architecture, safety model, and commands.

@@ -30,18 +30,18 @@ First prompt TTFT (11.46 s) includes **cold-start / model-load penalty**; subseq
 
 ## Optimization Run Status
 
-**No multi-candidate LOW_LATENCY optimization results were found in persisted storage.**
+**VERIFIED LIVE OPTIMIZATION** — corrected `THROUGHPUT` run documented in [`throughput-optimization-2026-09-01.md`](throughput-optimization-2026-09-01.md).
 
-Inspection on 2026-09-01:
+| Result | Value |
+|--------|-------|
+| Baseline score | 14.64 |
+| Winning config | `max_tokens=480`, `temperature=0.7` |
+| Winning score | 15.26 (~4.22% improvement) |
+| Winner TTFT / TPS | 6.74 s / 7.44 |
 
-| Store | Contents |
-|-------|----------|
-| `governor/data/benchmark_*.json` | **1 run** (`default` profile only) |
-| `governor/data/governor.sqlite` → `benchmark_runs` | **0 rows** |
-| `governor/data/governor.sqlite` → `optimization_decisions` | **2 rows** — unit-test artifacts (`reason: test`) |
-| `governor/data/governor.sqlite` → `saved_profiles` | **1 row** — unit-test artifact (`score: 1.5`) |
+An earlier pre-`d682462` THROUGHPUT run produced incorrect results and is **not** contest evidence.
 
-If `python -m governor optimize --profile LOW_LATENCY` was executed, its results were **not persisted** to SQLite or additional JSON files on this machine. Re-run optimize with API key set to populate decision logs.
+`LOW_LATENCY` multi-candidate optimization was not separately documented at time of initial benchmark capture.
 
 ## Scoring
 

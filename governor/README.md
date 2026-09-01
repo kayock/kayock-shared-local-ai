@@ -12,7 +12,7 @@ Safe local prototype for observing GPU/CPU telemetry, benchmarking Lemonade infe
 | Lemonade health/models | **VERIFIED** — HTTP API (requires `LEMONADE_API_KEY`) |
 | Benchmark harness | **IMPLEMENTED BUT EXPERIMENTAL** |
 | Workload profiles | **VERIFIED** — bounds + definitions |
-| Deterministic optimizer | **IMPLEMENTED BUT EXPERIMENTAL** |
+| Deterministic optimizer | **VERIFIED** — THROUGHPUT live run (post-`d682462`) |
 | Handoff observer | **VERIFIED** — telemetry-based state inference |
 | Web dashboard | **IMPLEMENTED BUT EXPERIMENTAL** |
 | Load-time ctx-size apply | **PLANNED** — documented, not auto-applied |
@@ -113,9 +113,20 @@ Full report: [`evidence/benchmark-results-2026-09-01.md`](evidence/benchmark-res
 
 Per-prompt TTFT ranged **3.62–11.46 s** (first prompt includes model-load penalty). TPS ranged **4.00–10.19**.
 
-**Optimization:** No multi-candidate `LOW_LATENCY` optimization results were persisted (`benchmark_runs` table empty; SQLite decision rows are unit-test artifacts only). Performance **improvement from the optimizer cannot be verified** from stored measurements. Re-run `python -m governor optimize --profile LOW_LATENCY` to generate decision logs.
+### Verified Live Optimization — THROUGHPUT (corrected run)
 
-Post-benchmark service check: Father Fox **active**, Lemonade `/health` **HTTP 200**.
+Full report: [`evidence/throughput-optimization-2026-09-01.md`](evidence/throughput-optimization-2026-09-01.md)
+
+| Field | Value |
+|-------|-------|
+| Baseline | `{512, 0.7}` → score **14.64** |
+| Winner | `{480, 0.7}` → score **15.26** (~**4.22%** improvement) |
+| Winner TTFT / TPS | **6.74 s** / **7.44** |
+| Decisions | 2× `REJECT`, 1× `KEEP`, 2× `NOT_BEST` |
+
+Live testing exposed an order-dependent global-best bug (fixed in **`d682462`**, regression tests added). An earlier buggy THROUGHPUT run is **not** contest evidence.
+
+Post-run service check: Father Fox **active**, Lemonade `/health` **HTTP 200**.
 
 ## Adjustable Parameters (v0.1)
 

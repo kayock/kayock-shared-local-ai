@@ -1,120 +1,190 @@
 # Kayock AI Resource Governor
 
-> **Status: PLANNED / FUTURE.** Nothing in this directory is implemented.
+**Status: IMPLEMENTED BUT EXPERIMENTAL (v0.1)**
 
-## Problem
+Safe local prototype for observing GPU/CPU telemetry, benchmarking Lemonade inference, and deterministically optimizing per-request software settings. Does **not** modify Father Fox, Lemonade, RVC, NOMAD, or Whispeer.
 
-Today, Father Fox manages GPU handoff independently — calling Lemonade's `/v1/unload` before loading RVC, sleeping a fixed grace period, then relying on automatic reload on the next chat request. Runtime evidence confirms this works (2026-09-01 journal), but the approach lacks:
-
-- Centralized visibility into VRAM, TTFT, and TPS
-- Coordinated scheduling across multiple apps
-- Safe experimentation with inference parameters
-- Automatic rollback when a change degrades performance
-
-## Vision
-
-The **Kayock AI Resource Governor** sits between applications and Lemonade as a local policy service. It does not replace Lemonade — it orchestrates *when* and *how* apps use it.
-
-```mermaid
-flowchart TB
-    subgraph Apps
-        FF["Father Fox"]
-        OT["Future local apps"]
-    end
-
-    subgraph Governor["AI Resource Governor (planned)"]
-        MON["Monitor"]
-        POL["Policy Engine"]
-        BENCH["Safe Benchmarker"]
-        SCORE["Scorer + Rollback"]
-    end
-
-    subgraph Infra
-        LM["Lemonade"]
-        GPU["GPU"]
-    end
-
-    FF --> Governor
-    OT --> Governor
-    Governor --> LM
-    LM --> GPU
-    MON --> POL
-    POL --> BENCH
-    BENCH --> SCORE
-```
-
-## Planned Metrics
-
-| Metric | Abbreviation | Purpose |
-|--------|--------------|---------|
-| Time to first token | TTFT | Measure perceived latency for voice/chat |
-| Tokens per second | TPS | Throughput under load |
-| VRAM resident / free | VRAM | Track model occupancy and handoff success |
-| GPU utilization | UTIL | Detect idle vs. saturated periods |
-| Temperature | TEMP | Inference randomness per app profile |
-| Context window | CTX | Right-size `ctx-size` per workload |
-| Batch size | BATCH | Coordinate concurrent requests safely |
-| CPU/GPU threads | THREADS | Tune backend parallelism |
-
-## Planned Policy Dimensions
-
-### App Priority
-
-Interactive voice (Father Fox) should preempt lower-priority background tasks from future clients. Priority tiers would influence unload decisions and queue ordering.
-
-### Unload / Reload Policy
-
-Replace per-app fixed `sleep(1.0)` with measured VRAM-free confirmation:
-
-1. Request unload via Lemonade API
-2. Poll VRAM until below threshold or timeout
-3. Grant GPU lease to requesting app (RVC, etc.)
-4. On lease expiry, allow next chat request to reload
-
-### Safe Benchmarking
-
-Before applying a configuration change (context size, thread count, reasoning effort):
-
-1. Snapshot current metrics as baseline
-2. Run a short, bounded probe request
-3. Score against baseline
-4. Roll back if TTFT or TPS regresses beyond tolerance
-
-### Scoring
-
-A composite score weighting TTFT (latency-sensitive), TPS (throughput), and VRAM headroom (stability). Weights would be configurable per app profile.
-
-### Rollback
-
-Every policy change stores the previous configuration. Failed benchmarks or error-rate spikes trigger automatic revert.
-
-## Relationship to Current Code
-
-Father Fox already implements the **minimal handoff** the Governor would generalize:
-
-| Father Fox today | Governor future |
-|------------------|-----------------|
-| Per-app `POST /v1/unload` | Centralized unload orchestration |
-| Fixed 1s sleep | VRAM-polling with timeout |
-| No metrics collection | Continuous TTFT/TPS/VRAM monitoring |
-| No cross-app awareness | Priority queue across apps |
-
-See [`integrations/rvc-handoff/`](../integrations/rvc-handoff/) for the current reference implementation.
-
-## Non-Goals (Initial Design)
-
-- Replacing Lemonade or running custom inference
-- Cloud offload or hybrid routing
-- Modifying existing application code without opt-in
-
-## Implementation Status
+## What v0.1 Does
 
 | Component | Status |
 |-----------|--------|
-| Metric collection daemon | Not started |
-| Policy engine | Not started |
-| Safe benchmark harness | Not started |
-| Scoring / rollback | Not started |
-| Application SDK | Not started |
+| Telemetry (`status`) | **VERIFIED** — nvidia-smi + psutil |
+| Lemonade health/models | **VERIFIED** — HTTP API (requires `LEMONADE_API_KEY`) |
+| Benchmark harness | **IMPLEMENTED BUT EXPERIMENTAL** |
+| Workload profiles | **VERIFIED** — bounds + definitions |
+| Deterministic optimizer | **IMPLEMENTED BUT EXPERIMENTAL** |
+| Handoff observer | **VERIFIED** — telemetry-based state inference |
+| Web dashboard | **IMPLEMENTED BUT EXPERIMENTAL** |
+| Load-time ctx-size apply | **PLANNED** — documented, not auto-applied |
+| Father Fox integration | **PLANNED** — observe only |
 
-This remains design documentation until implementation begins.
+## Safety Model
+
+- **Read-only hardware** — uses `nvidia-smi` and psutil; no voltage, clock, or firmware changes
+- **No root required** — user-space only
+- **No service disruption** — does not stop Father Fox, Lemonade, or RVC
+- **Bounded parameters** — only `max_tokens` and `temperature` are auto-tuned (per-request)
+- **Explicit rollback** — failed candidates rejected; best-known config restored
+- **No LLM-driven commands** — all changes from fixed allow-lists
+
+## Architecture
+
+```mermaid
+flowchart TB
+    CLI["python -m governor"]
+    TEL["Telemetry"]
+    LM["Lemonade Client"]
+    BENCH["Benchmark Harness"]
+    OPT["Optimizer"]
+    DB["SQLite persistence"]
+    DASH["Dashboard :8770"]
+
+    CLI --> TEL
+    CLI --> LM
+    CLI --> BENCH
+    CLI --> OPT
+    CLI --> DASH
+    BENCH --> LM
+    OPT --> BENCH
+    OPT --> DB
+    BENCH --> DB
+    TEL --> DASH
+```
+
+## Commands
+
+From repository root (`/home/kayock/kayock-shared-local-ai`):
+
+```bash
+pip install -r governor/requirements.txt
+
+export LEMONADE_URL="http://127.0.0.1:13305"
+export LEMONADE_API_KEY="your-local-key"
+export LEMONADE_MODEL="gpt-oss-20b-MXFP4"
+
+python -m governor status
+python -m governor status --json
+
+python -m governor benchmark
+python -m governor benchmark --json
+
+python -m governor optimize --profile LOW_LATENCY
+python -m governor optimize --baseline-only
+
+python -m governor profiles
+python -m governor handoff
+python -m governor handoff --lifecycle
+
+python -m governor dashboard
+```
+
+## Supported Metrics
+
+| Metric | Source | Notes |
+|--------|--------|-------|
+| GPU name | nvidia-smi | |
+| GPU utilization | nvidia-smi | |
+| VRAM used/free/total | nvidia-smi | |
+| GPU temperature | nvidia-smi | |
+| GPU clock | nvidia-smi | May be `[N/A]` on idle P2000 |
+| Power draw/limit | nvidia-smi | Often `[N/A]` on Quadro P2000 |
+| Throttle reasons | nvidia-smi -q | Active clock event reasons |
+| CPU / RAM | psutil | |
+| Lemonade online | HTTP `/health` | Requires API key |
+| Models list | HTTP `/v1/models` | |
+
+Unsupported metrics report as `unavailable` without failing.
+
+## Adjustable Parameters (v0.1)
+
+### Auto-tuned (per-request, safe)
+
+| Parameter | Min | Max |
+|-----------|-----|-----|
+| `max_tokens` | 16 | 1024 |
+| `temperature` | 0.0 | 1.5 |
+
+### Documented only (load-time — PLANNED)
+
+| Parameter | Allow-list | Notes |
+|-----------|------------|-------|
+| `ctx_size` | 2048, 4096, 6144, 8192 | Requires model reload; not auto-applied |
+| `llamacpp` backend | via `lemonade run --llamacpp` | CLI load-time only |
+
+Lemonade CLI on this machine supports `--ctx-size`, `--llamacpp-args`, etc. The Governor records these in profiles but does **not** reload models without explicit future `--allow-reload` flag.
+
+## Workload Profiles
+
+| Profile | Priority | Default max_tokens |
+|---------|----------|-------------------|
+| `LOW_LATENCY` | TTFT | 96 |
+| `THROUGHPUT` | TPS | 512 |
+| `BACKGROUND` | efficiency | 256 |
+| `GPU_HANDOFF` | VRAM release | 64 |
+
+External apps (Father Fox, Whispeer) are **not integrated** — profiles are conceptual targets for optimization scoring.
+
+## Handoff Awareness
+
+Observer states (from documented Father Fox lifecycle):
+
+1. `AI_INFERENCE_ACTIVE` / `AI_INFERENCE_IDLE`
+2. `GPU_MEMORY_PRESSURE` (free VRAM below threshold)
+3. `MODEL_UNLOAD_REQUIRED` / `GPU_RELEASED` (external signals)
+4. `AI_SERVICE_RESTORATION`
+
+Does not call `/v1/unload` — see [`integrations/rvc-handoff/`](../integrations/rvc-handoff/) for the production handoff pattern.
+
+## Optimizer Flow
+
+```
+MEASURE baseline → GENERATE ≤6 candidates → BENCHMARK each
+    → SCORE → KEEP if improved → else REJECT/ROLLBACK
+    → SAVE winning profile to SQLite
+```
+
+Every decision logged with timestamp, configs, TTFT, TPS, VRAM, temperature, score, and reason.
+
+## Persistence
+
+Runtime data in `governor/data/` (gitignored):
+
+- `governor.sqlite` — benchmarks, decisions, events, saved profiles
+- `benchmark_*.json` — individual benchmark run exports
+
+## Dashboard
+
+`python -m governor dashboard` → `http://127.0.0.1:8770`
+
+Shows GPU, Lemonade status, handoff state, optimizer results, recent events/decisions.
+
+## Tests
+
+```bash
+pip install pytest
+cd /home/kayock/kayock-shared-local-ai
+python -m pytest governor/tests/ -v
+```
+
+Tests mock hardware where needed; no GPU settings changed.
+
+## Limitations
+
+- No automatic Lemonade model reload / ctx-size changes in v0.1
+- No direct Father Fox / RVC control
+- Token counts estimated from streamed text when usage metadata absent
+- Benchmark requires live Lemonade + API key
+- P2000 may not expose power metrics
+
+## Future Work (PLANNED)
+
+- VRAM-polling handoff coordinator (replace fixed sleep)
+- Opt-in `--allow-reload` for ctx-size benchmarks with reload penalty measurement
+- Father Fox opt-in callback for handoff events
+- Multi-app priority queue
+- AMD GPU telemetry via ROCm where available
+
+## Related Documentation
+
+- [Contest GPU handoff evidence](../docs/gpu-handoff.md)
+- [Father Fox integration reference](../integrations/rvc-handoff/)

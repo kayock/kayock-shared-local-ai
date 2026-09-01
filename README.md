@@ -6,6 +6,19 @@ Entry for the [AMD Lemonade Developer Challenge](https://www.amd.com/en/develope
 
 Lemonade is the OpenAI-compatible local runtime/API layer. The project runs on consumer hardware (verified on NVIDIA Quadro P2000); it is not limited to AMD GPUs.
 
+## Contest Demo
+
+**[Kayock Shared Local AI — Contest Demo](demo/README.md)** — judge-friendly package for the AMD Lemonade Developer Challenge.
+
+| Resource | Link |
+|----------|------|
+| Demo overview | [demo/README.md](demo/README.md) |
+| 2–3 min script | [demo/demo-script.md](demo/demo-script.md) |
+| Recording runbook | [demo/demo-runbook.md](demo/demo-runbook.md) |
+| Submission copy | [demo/contest-summary.md](demo/contest-summary.md) |
+| Verified results | [demo/verified-results.md](demo/verified-results.md) |
+| Live showcase | [Trophy Room](trophy-room/README.md) — `http://127.0.0.1:8771` |
+
 ## What Is Verified Here
 
 | Capability | Status | Evidence type |

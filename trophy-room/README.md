@@ -26,6 +26,10 @@ Trophy Room does **not** call `/v1/unload`, modify Lemonade, or control Father F
 
 ## Run
 
+### Local-only (default)
+
+Binds to **127.0.0.1:8771** — only accessible from this machine.
+
 ```bash
 cd /home/kayock/kayock-shared-local-ai
 pip install -r trophy-room/requirements.txt
@@ -38,7 +42,30 @@ python app.py
 
 Open **http://127.0.0.1:8771**
 
-Port **8771** — does not conflict with Father Fox (8765), RVC (8766), Governor (8770), or Lemonade (13305).
+### LAN demo (trusted network only)
+
+To show the dashboard on phones or other devices on your local network:
+
+```bash
+TROPHY_ROOM_HOST=0.0.0.0 python app.py
+```
+
+Optional custom port:
+
+```bash
+TROPHY_ROOM_HOST=0.0.0.0 TROPHY_ROOM_PORT=8771 python app.py
+```
+
+Then open `http://<this-machine-hostname-or-ip>:8771` from another device on the same LAN.
+
+**Warning:** LAN mode (`0.0.0.0`) exposes the read-only dashboard to every device on your local network. There is no login. Use only on a **trusted home LAN**. Default `127.0.0.1` is recommended for everyday use.
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `TROPHY_ROOM_HOST` | `127.0.0.1` | Bind address (`0.0.0.0` for all interfaces) |
+| `TROPHY_ROOM_PORT` | `8771` | HTTP port |
+
+Port **8771** does not conflict with Father Fox (8765), RVC (8766), Governor (8770), or Lemonade (13305).
 
 ## Views
 
@@ -78,7 +105,7 @@ Port **8771** — does not conflict with Father Fox (8765), RVC (8766), Governor
 - Never embedded in HTML or JavaScript
 - Evidence sanitized (no private IPs, no keys)
 - Does not read `/etc/father-fox-lemonade.env`
-- Binds to `127.0.0.1` by default
+- Binds to `127.0.0.1` by default; set `TROPHY_ROOM_HOST=0.0.0.0` only on a trusted LAN
 
 ## Tests
 

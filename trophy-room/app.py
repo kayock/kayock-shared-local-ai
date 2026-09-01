@@ -98,6 +98,9 @@ async def api_governor() -> JSONResponse:
 
 def main() -> None:
     import uvicorn
+    print(f"Trophy Room listening on http://{HOST}:{PORT}")
+    if HOST == "0.0.0.0":
+        print("LAN mode: dashboard reachable from other devices on this network.")
     uvicorn.run(app, host=HOST, port=PORT, log_level="info")
 
 

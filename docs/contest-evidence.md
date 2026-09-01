@@ -1,78 +1,79 @@
 # Contest Evidence
 
-This document records what evidence was searched for, what was found, and what could not be verified on the local machine at repository creation time.
+Evidence is classified into three tiers throughout this repository:
 
-## Search Performed
+| Tier | Label | Meaning |
+|------|-------|---------|
+| 1 | **VERIFIED FROM RUNTIME LOG** | Captured from `journalctl` or equivalent system logs |
+| 2 | **VERIFIED FROM SOURCE CODE** | Confirmed by reading application source (not executed here) |
+| 3 | **PLANNED / FUTURE** | Design intent only; not implemented or demonstrated |
 
-The following paths and patterns were searched under `/home/kayock`:
+## Runtime Evidence Recovered
 
-| Item | Result |
-|------|--------|
-| `AMD_Lemonade_Contest_Evidence_Log.md` | **Not found** |
-| `/home/kayock/kayock-social-agent` | **Directory does not exist** |
-| `Whispeer` / `whispeer` in source files | **No matches** |
-| `Lemonade` in source files | Found in `father-fox-hub/app.py` and backups |
-| `gpt-oss-20b-MXFP4` | Found in `father-fox-hub/app.py` |
-| `RVC GPU handoff` | Found in `father-fox-hub/app.py` |
-| `Lemonade VRAM released` | Found in `father-fox-hub/app.py` |
+**VERIFIED FROM RUNTIME LOG** — journal entries from `father-fox-voice.service` on **2026-09-01 between 00:17:39 and 00:20:46** (local time).
+
+Retrieval command:
+
+```bash
+journalctl -u father-fox-voice.service \
+  --since "2026-09-01 00:10:00" \
+  --until "2026-09-01 00:30:00" \
+  --no-pager
+```
+
+Full sanitized excerpt: [`evidence/verified-tests/2026-09-01-father-fox-journal.md`](../evidence/verified-tests/2026-09-01-father-fox-journal.md)
+
+### Key runtime log lines (verbatim message text)
+
+```
+[Father Fox] Model Only -> Lemonade (gpt-oss-20b-MXFP4)
+[RVC GPU handoff] Unloading Lemonade model: gpt-oss-20b-MXFP4
+[RVC GPU handoff] Lemonade VRAM released for RVC.
+[RVC GPU handoff] GPU already clear of Ollama models.
+POST /api/talk HTTP/1.1" 200 OK
+[Father Fox] Model Only -> Lemonade (gpt-oss-20b-MXFP4)    ← second request (return to Lemonade)
+POST /api/talk HTTP/1.1" 200 OK
+```
+
+The second `Model Only -> Lemonade` line at **00:20:15** confirms the full handoff cycle: unload → RVC → return to Lemonade inference.
 
 ## Verified from Source Code
 
-The following capabilities are **confirmed by reading** `/home/kayock/father-fox-hub/app.py`:
+The following are **VERIFIED FROM SOURCE CODE** in `/home/kayock/father-fox-hub/app.py`:
 
-### 1. Father Fox → Lemonade (Model Only)
+| Capability | Source marker |
+|------------|---------------|
+| Lemonade chat for `Model Only` collection | `FATHER_FOX_LEMONADE_MODEL_ONLY_V1` |
+| `POST /v1/unload` with `model_name` | `FATHER_FOX_LEMONADE_RVC_HANDOFF_V1` |
+| RVC handoff for special voices | `FATHER_FOX_RVC_GPU_HANDOFF_V1` |
+| 1-second VRAM grace period | `time.sleep(1.0)` in unload functions |
+| Auto-reload comment on next request | Comment in `release_lemonade_gpu_for_rvc()` |
 
-When `collection == "Model Only"`, Father Fox sends a non-streaming chat completion request to Lemonade with the configured model (`gpt-oss-20b-MXFP4` by default).
+Runtime journal evidence now corroborates the auto-reload behavior that was previously source-comment-only.
 
-Source markers: `FATHER_FOX_LEMONADE_MODEL_ONLY_V1`
+## Search Performed (Initial Repository Creation)
 
-### 2. Lemonade Model Unload
+| Item | Result |
+|------|--------|
+| `AMD_Lemonade_Contest_Evidence_Log.md` | **Not found** on disk |
+| `/home/kayock/kayock-social-agent` | **Directory does not exist** |
+| `journalctl -u father-fox-voice.service` | **Runtime evidence recovered** (see above) |
+| `journalctl --user -u father-fox-voice.service` | No entries for test window |
 
-`release_lemonade_gpu_for_rvc()` POSTs to `{LEMONADE_URL}/v1/unload` with `{"model_name": LEMONADE_MODEL}` and expects `{"status": "success"}`.
+## Not Verified / Not Demonstrated
 
-Source markers: `FATHER_FOX_LEMONADE_RVC_HANDOFF_V1`
-
-### 3. VRAM Release
-
-After a successful unload, the code sleeps 1 second and logs:
-
-```
-[RVC GPU handoff] Lemonade VRAM released for RVC.
-```
-
-### 4. RVC GPU Handoff
-
-Special character voices (`batman`, `optimus_prime`, `darth_vader`, `iron_man`) trigger `release_ai_gpu_for_rvc()` before calling Kayock Voice at `https://127.0.0.1:8766/speak`.
-
-Source markers: `FATHER_FOX_RVC_GPU_HANDOFF_V1`
-
-### 5. Return to Lemonade
-
-Source comment in `release_lemonade_gpu_for_rvc()`:
-
-> The next Lemonade chat request automatically reloads the model, so Father Fox does not need to restart Lemonade afterward.
-
-This is a **design assertion in code comments**, not a captured benchmark or test result.
-
-## Not Verified
-
-| Claim | Reason |
+| Claim | Status |
 |-------|--------|
-| Whispeer using Lemonade | No Whispeer source code found on this machine |
-| Runtime benchmarks (TTFT, TPS) | No evidence log file found; not invented here |
-| Timestamps of successful handoff tests | No evidence log file found |
-| `kayock-social-agent` integration | Directory absent at expected path |
+| Whispeer using Lemonade | **PLANNED / FUTURE** — no source on this machine |
+| NOMAD as Lemonade client | Uses separate RAG backend; not part of Lemonade demo |
+| Runtime benchmarks (TTFT, TPS) | Not measured; only wall-clock gaps between journal lines |
+| Multiple independent apps sharing Lemonade | Only Father Fox + RVC workload demonstrated |
+| Kayock AI Resource Governor | **PLANNED / FUTURE** |
 
 ## Missing Evidence File
 
-`AMD_Lemonade_Contest_Evidence_Log.md` was requested as the primary evidence source but **does not exist** anywhere under `/home/kayock` (searched with `find` and filename/content grep, September 2026).
-
-If this file is created later, place a sanitized copy under `evidence/verified-tests/` and update this document with cross-references to specific test entries.
-
-## Bash History Note
-
-A single Lemonade CLI invocation appears in shell history (model load command for `gpt-oss-20b-MXFP4` with Vulkan backend). This is noted for completeness but is **not** included as contest evidence because it was not part of a formal test log.
+`AMD_Lemonade_Contest_Evidence_Log.md` was not found under `/home/kayock`. Runtime journal excerpts substitute for formal test documentation.
 
 ## Evidence Repository Policy
 
-See [`evidence/README.md`](../evidence/README.md) for rules on what may be added to the evidence directory.
+See [`evidence/README.md`](../evidence/README.md).

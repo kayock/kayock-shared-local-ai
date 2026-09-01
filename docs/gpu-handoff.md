@@ -1,12 +1,12 @@
 # GPU Handoff: Lemonade ↔ RVC
 
-Father Fox runs on hardware with a **Quadro P2000 (4 GB VRAM)**. The resident Lemonade LLM (`gpt-oss-20b-MXFP4`) and RVC character voice models cannot fit on the GPU simultaneously. The handoff pattern releases Lemonade's model before loading RVC.
+Father Fox runs on hardware with a **4 GB GPU** (verified on NVIDIA Quadro P2000). The resident Lemonade LLM (`gpt-oss-20b-MXFP4`) and RVC character voice models cannot fit on the GPU simultaneously. The handoff pattern releases Lemonade's model before loading RVC.
 
 ## Problem
 
 ```
 ┌─────────────────────────────────────┐
-│  Quadro P2000 — 4 GB VRAM          │
+│  GPU — 4 GB VRAM                   │
 │                                     │
 │  gpt-oss-20b-MXFP4  +  RVC model   │
 │         ✗ Does not fit              │
@@ -23,6 +23,24 @@ Before synthesizing speech with a special RVC voice, Father Fox:
 4. Calls Kayock Voice RVC at `POST /speak`
 
 On the **next normal chat request**, Father Fox calls `POST /v1/chat/completions` again. Lemonade reloads the model automatically — no Lemonade restart required.
+
+## Runtime Verification
+
+**VERIFIED FROM RUNTIME LOG** — 2026-09-01, `father-fox-voice.service` journal:
+
+| Time (local) | Event |
+|--------------|-------|
+| 00:17:39 | `[Father Fox] Model Only -> Lemonade (gpt-oss-20b-MXFP4)` |
+| 00:18:08 | `[RVC GPU handoff] Unloading Lemonade model: gpt-oss-20b-MXFP4` |
+| 00:18:12 | `[RVC GPU handoff] Lemonade VRAM released for RVC.` |
+| 00:18:12 | `[RVC GPU handoff] GPU already clear of Ollama models.` |
+| 00:18:28 | `POST /api/talk HTTP/1.1" 200 OK` |
+| 00:20:15 | `[Father Fox] Model Only -> Lemonade (gpt-oss-20b-MXFP4)` ← return |
+| 00:20:46 | `POST /api/talk HTTP/1.1" 200 OK` |
+
+Source: [`evidence/verified-tests/2026-09-01-father-fox-journal.md`](../evidence/verified-tests/2026-09-01-father-fox-journal.md)
+
+Unload implementation: **VERIFIED FROM SOURCE CODE** — `FATHER_FOX_LEMONADE_RVC_HANDOFF_V1` in Father Fox `app.py`.
 
 ## Lifecycle Diagram
 
@@ -69,7 +87,7 @@ sequenceDiagram
 
 ## Special RVC Voices
 
-Only these voices trigger the GPU handoff (from Father Fox source):
+Only these voices trigger the GPU handoff (**VERIFIED FROM SOURCE CODE**):
 
 | Voice ID | Character |
 |----------|-----------|
@@ -99,12 +117,12 @@ Standard Kokoro voices (`am_adam`, `af_heart`, etc.) do **not** trigger unload.
 
 ## Legacy Ollama Cleanup
 
-`release_ai_gpu_for_rvc()` also calls `release_ollama_gpu_for_rvc()`, which runs `ollama ps` and `ollama stop` for any resident models. This preserves compatibility with legacy Ollama workloads that may still occupy GPU memory.
+`release_ai_gpu_for_rvc()` also calls `release_ollama_gpu_for_rvc()`. Runtime log at 00:18:12 confirmed: `GPU already clear of Ollama models.`
 
 ## Reference Implementation
 
-See [`integrations/rvc-handoff/`](../integrations/rvc-handoff/) for extracted reference code.
+See [`integrations/rvc-handoff/`](../integrations/rvc-handoff/).
 
-## Source
+## Demo
 
-Extracted from `/home/kayock/father-fox-hub/app.py` — markers `FATHER_FOX_RVC_GPU_HANDOFF_V1` and `FATHER_FOX_LEMONADE_RVC_HANDOFF_V1`.
+See [`demo-script.md`](demo-script.md) for a recorded walkthrough.

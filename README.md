@@ -1,41 +1,59 @@
 # Kayock Shared Local AI
 
-**One Lemonade server. Multiple independent local-AI applications. Shared hardware. No cloud required.**
+**Lemonade inference and specialized RVC workloads dynamically sharing constrained local GPU resources.**
 
-Entry for the [AMD Lemonade Developer Challenge](https://www.amd.com/en/developer/resources/technical-articles/2025/amd-lemonade-developer-challenge.html). This repository documents how multiple household applications share a single AMD Lemonade inference server on constrained local GPU hardware.
+Entry for the [AMD Lemonade Developer Challenge](https://www.amd.com/en/developer/resources/technical-articles/2025/amd-lemonade-developer-challenge.html). This repository documents and demonstrates — with **runtime journal evidence** — how Father Fox Voice Hub coordinates Lemonade LLM inference (`gpt-oss-20b-MXFP4`) and RVC character voice synthesis on a single 4 GB GPU.
+
+Lemonade is the OpenAI-compatible local runtime/API layer. The project runs on consumer hardware (verified on NVIDIA Quadro P2000); it is not limited to AMD GPUs.
 
 ## What Is Verified Here
 
-| Capability | Status | Source |
-|------------|--------|--------|
-| Father Fox → Lemonade (`gpt-oss-20b-MXFP4`) | **Verified in source** | [`integrations/father-fox/`](integrations/father-fox/) |
-| Lemonade `/v1/unload` before RVC | **Verified in source** | [`integrations/rvc-handoff/`](integrations/rvc-handoff/) |
-| VRAM release + RVC GPU handoff | **Verified in source** | [`docs/gpu-handoff.md`](docs/gpu-handoff.md) |
-| Auto-reload on next Lemonade request | **Documented in source comments** | [`integrations/rvc-handoff/lemonade_unload.py`](integrations/rvc-handoff/lemonade_unload.py) |
-| Whispeer → Lemonade | **Not found on this machine** | See [`docs/integrations.md`](docs/integrations.md) |
-| Contest evidence log | **File not found** | See [`docs/contest-evidence.md`](docs/contest-evidence.md) |
+| Capability | Status | Evidence type |
+|------------|--------|---------------|
+| Father Fox → Lemonade (`gpt-oss-20b-MXFP4`) | **Verified** | Runtime log + source |
+| Lemonade `/v1/unload` before RVC | **Verified** | Runtime log + source |
+| VRAM release + RVC GPU handoff | **Verified** | Runtime log + source |
+| Return to Lemonade on next request | **Verified** | Runtime log (2026-09-01 00:20:15) |
+| RVC `/api/talk` success after handoff | **Verified** | Runtime log (`200 OK`) |
+| Whispeer / additional Lemonade clients | **Not demonstrated** | Planned — source absent locally |
+| Kayock AI Resource Governor | **Planned** | Design only |
+
+Evidence file: [`evidence/verified-tests/2026-09-01-father-fox-journal.md`](evidence/verified-tests/2026-09-01-father-fox-journal.md)
+
+## Why This Matters
+
+- **Local-first AI** — Voice conversations stay on your machine. Lemonade serves the LLM; Father Fox handles speech I/O.
+- **Resource-constrained hardware** — A 4 GB GPU cannot hold a 20B model and RVC weights simultaneously. This project proves cooperative sharing instead of cloud offload.
+- **Cooperative GPU use** — Explicit `POST /v1/unload` before RVC, automatic model reload on the next chat request. No Lemonade restart required.
+- **Open-source reusable pattern** — Reference clients in [`integrations/`](integrations/) extract the handoff logic for adoption in other local apps.
+- **No cloud inference required** — The verified session used only local Lemonade, Father Fox, and Kayock Voice RVC.
 
 ## Architecture
 
 ```mermaid
 flowchart TB
-    subgraph Apps["Independent Applications"]
+    subgraph Verified["Verified Workloads"]
         FF["Father Fox Voice Hub<br/>:8765"]
-        WH["Whispeer<br/>(not present locally)"]
         RVC["Kayock Voice / RVC<br/>:8766"]
     end
 
     subgraph Shared["Shared Local Stack"]
-        LM["AMD Lemonade Server<br/>:13305"]
-        GPU["GPU — Quadro P2000 4 GB VRAM"]
+        LM["Lemonade Server<br/>:13305"]
+        GPU["GPU — 4 GB VRAM"]
+    end
+
+    subgraph Future["Planned / Future Clients"]
+        WH["Whispeer"]
+        NOMAD["NOMAD RAG backend"]
     end
 
     FF -->|"POST /v1/chat/completions<br/>gpt-oss-20b-MXFP4"| LM
-    WH -.->|"planned / not verified locally"| LM
-    FF -->|"POST /speak (character voices)"| RVC
     FF -->|"POST /v1/unload before RVC"| LM
+    FF -->|"POST /speak (character voices)"| RVC
     LM --> GPU
     RVC --> GPU
+    WH -.->|"future"| LM
+    FF -.->|"RAG collections"| NOMAD
 ```
 
 ## GPU Handoff Lifecycle
@@ -66,6 +84,8 @@ sequenceDiagram
     Lemonade-->>FatherFox: LLM reply
 ```
 
+*Sequence verified from runtime journal on 2026-09-01.*
+
 ## Repository Layout
 
 ```
@@ -76,24 +96,22 @@ kayock-shared-local-ai/
 ├── docs/
 │   ├── architecture.md
 │   ├── contest-evidence.md
+│   ├── demo-script.md
 │   ├── gpu-handoff.md
 │   ├── integrations.md
 │   └── roadmap.md
 ├── integrations/
 │   ├── father-fox/       # Lemonade chat completions
-│   ├── whispeer/         # placeholder — source not found
-│   └── rvc-handoff/      # unload + VRAM release
+│   ├── rvc-handoff/      # unload + VRAM release
+│   └── whispeer/         # future client placeholder
 ├── evidence/
-│   ├── README.md
-│   ├── verified-tests/
+│   ├── verified-tests/   # runtime journal excerpts
 │   └── sanitized-logs/
-└── governor/             # future work — AI Resource Governor
+└── governor/             # PLANNED — AI Resource Governor
     └── README.md
 ```
 
 ## Quick Start (Reference)
-
-These examples mirror patterns from Father Fox. Set credentials locally:
 
 ```bash
 export LEMONADE_URL="http://127.0.0.1:13305"
@@ -101,15 +119,19 @@ export LEMONADE_API_KEY="your-local-key"
 export LEMONADE_MODEL="gpt-oss-20b-MXFP4"
 ```
 
-See [`integrations/father-fox/lemonade_chat.py`](integrations/father-fox/lemonade_chat.py) for a minimal chat-completions client and [`integrations/rvc-handoff/lemonade_unload.py`](integrations/rvc-handoff/lemonade_unload.py) for the GPU handoff unload call.
+See [`integrations/father-fox/lemonade_chat.py`](integrations/father-fox/lemonade_chat.py) and [`integrations/rvc-handoff/lemonade_unload.py`](integrations/rvc-handoff/lemonade_unload.py).
+
+## Demo Recording
+
+Follow [`docs/demo-script.md`](docs/demo-script.md) for a 2–3 minute contest video walkthrough.
 
 ## Hardware Context
 
-Father Fox documents a **NVIDIA Quadro P2000 with 4 GB VRAM**. The resident Lemonade LLM and RVC character voices cannot coexist on the GPU simultaneously — the handoff pattern exists specifically for this constraint.
+Verified on a **NVIDIA Quadro P2000 (4 GB VRAM)**. Lemonade serves `gpt-oss-20b-MXFP4`; RVC character voices require a separate GPU allocation — coordinated via explicit unload.
 
 ## Future Work
 
-The [Kayock AI Resource Governor](governor/README.md) is a planned self-optimizer for TTFT, TPS, VRAM, and multi-app scheduling. It is **not implemented** in this repository.
+The [Kayock AI Resource Governor](governor/README.md) (**PLANNED / FUTURE**) will centralize VRAM monitoring, app priority, and safe benchmarking. Whispeer and NOMAD are documented as potential future Lemonade clients — not demonstrated in this repository.
 
 ## License
 

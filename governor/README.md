@@ -161,9 +161,19 @@ Does not call `/v1/unload` — see [`integrations/rvc-handoff/`](../integrations
 
 ```
 MEASURE baseline → GENERATE ≤6 candidates → BENCHMARK each
-    → SCORE → KEEP if improved → else REJECT/ROLLBACK
-    → SAVE winning profile to SQLite
+    → SCORE → KEEP if new global best → NOT_BEST if beats baseline only
+    → REJECT if below baseline → ROLLBACK on errors
+    → SAVE highest-scoring successful config
 ```
+
+Decision labels:
+
+| Decision | Meaning |
+|----------|---------|
+| `KEEP` | New **global** best (beats current best by ≥2%) |
+| `NOT_BEST` | Beats baseline but not current global best |
+| `REJECT` | Does not beat baseline |
+| `ROLLBACK` | Benchmark errors |
 
 Every decision logged with timestamp, configs, TTFT, TPS, VRAM, temperature, score, and reason.
 

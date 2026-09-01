@@ -131,12 +131,21 @@ class Optimizer:
             if run.errors:
                 decision = "ROLLBACK"
                 reason = run.errors[0]
-            elif compare_scores(scored.score, self.baseline_score):
+            elif compare_scores(scored.score, self.best_score):
                 decision = "KEEP"
-                reason = f"Score {scored.score:.4f} improves baseline {self.baseline_score:.4f}"
+                reason = (
+                    f"Score {scored.score:.4f} is new global best "
+                    f"(previous best {self.best_score:.4f})"
+                )
                 self.best_config = candidate
                 self.best_score = scored.score
                 save_winning_profile(self.workload.value, candidate_dict, scored.score)
+            elif compare_scores(scored.score, self.baseline_score):
+                decision = "NOT_BEST"
+                reason = (
+                    f"Score {scored.score:.4f} beats baseline {self.baseline_score:.4f} "
+                    f"but not current best {self.best_score:.4f}"
+                )
             else:
                 decision = "REJECT"
                 reason = (

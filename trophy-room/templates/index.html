@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kayock Local AI Trophy Room</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script>window.POLL_INTERVAL_MS = {{ poll_ms }};</script>
+</head>
+<body>
+
+<header class="hero">
+  <h1>KAYOCK LOCAL AI TROPHY ROOM</h1>
+  <p class="tagline">One Lemonade server. Multiple local-AI workloads. Shared hardware. No cloud required.</p>
+  <div class="summary-bar">
+    <div class="summary-chip"><div class="label">Lemonade</div><div class="value" id="live-lemonade">…</div></div>
+    <div class="summary-chip"><div class="label">Model</div><div class="value">{{ model }}</div></div>
+    <div class="summary-chip"><div class="label">GPU</div><div class="value">Quadro P2000</div></div>
+    <div class="summary-chip"><div class="label">Governor</div><div class="value" id="live-governor">…</div></div>
+    <div class="summary-chip"><div class="label">Father Fox</div><div class="value" id="live-father-fox">…</div></div>
+    <div class="summary-chip"><div class="label">RVC Handoff</div><div class="value online">VERIFIED</div></div>
+    <div class="summary-chip"><div class="label">Optimization</div><div class="value online">+{{ throughput.improvement_pct }}% VERIFIED</div></div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-panel="trophy">🏆 Trophy Room</button>
+  <button class="tab" data-panel="arena">🧠 Model Arena</button>
+  <button class="tab" data-panel="handoff">⚡ GPU Handoff</button>
+  <button class="tab" data-panel="clients">🌐 Local AI Clients</button>
+  <button class="tab" data-panel="vault">📜 Evidence Vault</button>
+</nav>
+
+<main>
+
+<!-- 1 TROPHY ROOM -->
+<section id="trophy" class="panel active">
+  <h2>Milestones</h2>
+  <div class="card-grid">
+    {% for m in milestones %}
+    <div class="card">
+      <span class="badge badge-{{ 'verified' if m.badge == 'VERIFIED' else ('experimental' if 'EXPERIMENTAL' in m.badge else 'planned') }}">{{ m.badge }}</span>
+      <h3>{{ m.title }}</h3>
+      {% if m.note %}<p style="color:var(--muted);font-size:0.85rem">{{ m.note }}</p>{% endif %}
+      {% if m.ref %}<div class="ref">{{ m.ref }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="governor-panel">
+    <h2>Governor Panel — THROUGHPUT <span class="badge badge-verified">VERIFIED</span></h2>
+    <div class="metrics-grid">
+      <div class="metric"><div class="val">{{ "%.4f"|format(governor.throughput.baseline_score) }}</div><div class="lbl">Baseline score</div></div>
+      <div class="metric"><div class="val">{{ "%.4f"|format(governor.throughput.best_score) }}</div><div class="lbl">Best score</div></div>
+      <div class="metric"><div class="val">+{{ governor.throughput.improvement_pct }}%</div><div class="lbl">Improvement</div></div>
+      <div class="metric"><div class="val">{{ governor.throughput.winner.max_tokens }}</div><div class="lbl">Winner max_tokens</div></div>
+      <div class="metric"><div class="val">{{ governor.throughput.winner.temperature }}</div><div class="lbl">Winner temp</div></div>
+      <div class="metric"><div class="val">{{ governor.test_count }}</div><div class="lbl">Unit tests</div></div>
+    </div>
+    <p style="font-size:0.85rem;color:var(--muted)">Bug fix: order-dependent global-best issue corrected in commit <code>{{ governor.bug_fix_commit }}</code>.</p>
+  </div>
+</section>
+
+<!-- 2 MODEL ARENA -->
+<section id="arena" class="panel">
+  <h2>Model Arena</h2>
+  <div class="card">
+    <h3>Verified Model</h3>
+    <p><strong>{{ model }}</strong> <span class="badge badge-verified">VERIFIED</span></p>
+    <p>Used by Father Fox Model Only path and Governor benchmarks.</p>
+  </div>
+  <div class="card">
+    <h3>Lemonade Status</h3>
+    <p id="arena-lemonade">Polling…</p>
+  </div>
+  <div class="card">
+    <h3>Verified Benchmark (Governor harness)</h3>
+    <table>
+      <tr><th>Metric</th><th>Value</th></tr>
+      <tr><td>Config</td><td>max_tokens={{ benchmark.config.max_tokens }}, temp={{ benchmark.config.temperature }}</td></tr>
+      <tr><td>Avg TTFT</td><td>{{ benchmark.avg_ttft_s }} s</td></tr>
+      <tr><td>Avg TPS</td><td>{{ benchmark.avg_tps }}</td></tr>
+      <tr><td>Peak VRAM</td><td>{{ benchmark.peak_vram_mib }} MiB</td></tr>
+      <tr><td>Peak temp</td><td>{{ benchmark.peak_temp_c }} °C</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3>THROUGHPUT Winner Metrics</h3>
+    <table>
+      <tr><th>Metric</th><th>Value</th></tr>
+      <tr><td>TTFT</td><td>{{ "%.2f"|format(throughput.winner_ttft) }} s</td></tr>
+      <tr><td>TPS</td><td>{{ "%.2f"|format(throughput.winner_tps) }}</td></tr>
+      <tr><td>Score</td><td>{{ "%.4f"|format(throughput.best_score) }}</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 3 GPU HANDOFF -->
+<section id="handoff" class="panel">
+  <h2>GPU Handoff Lifecycle <span class="badge badge-verified">VERIFIED</span></h2>
+  <p>Documented Father Fox → Lemonade → unload → RVC → return sequence. Observation only — no automatic handoff from Trophy Room.</p>
+
+  <div class="handoff-flow timeline-static">
+    <div class="handoff-step"><span>↓</span><span>FATHER FOX — voice request (Model Only)</span></div>
+    <div class="handoff-step"><span>↓</span><span>LEMONADE — gpt-oss-20b-MXFP4</span></div>
+    <div class="handoff-step"><span>↓</span><span>SPECIAL VOICE REQUEST</span></div>
+    <div class="handoff-step"><span>↓</span><span>LEMONADE UNLOAD</span></div>
+    <div class="handoff-step"><span>↓</span><span>VRAM RELEASED</span></div>
+    <div class="handoff-step"><span>↓</span><span>RVC RECEIVES GPU</span></div>
+    <div class="handoff-step"><span>↓</span><span>RVC COMPLETES</span></div>
+    <div class="handoff-step"><span>↓</span><span>NEXT NORMAL REQUEST</span></div>
+    <div class="handoff-step"><span>↓</span><span>LEMONADE RETURNS</span></div>
+  </div>
+
+  <h3>Runtime Evidence Timestamps (2026-09-01)</h3>
+  <div class="handoff-flow timeline-static">
+    {% for step in handoff_timeline %}
+    <div class="handoff-step">
+      <span class="time">{{ step.time }}</span>
+      <span>{{ step.event }}</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <h3>Live GPU Telemetry</h3>
+  <div id="live-gpu-panel">Loading…</div>
+</section>
+
+<!-- 4 LOCAL AI CLIENTS -->
+<section id="clients" class="panel">
+  <h2>Local AI Clients</h2>
+  <div class="card-grid">
+    {% for s in services %}
+    <div class="card">
+      <span class="badge badge-{{ 'verified' if s.badge == 'VERIFIED' else ('experimental' if 'EXPERIMENTAL' in s.badge else 'planned') }}">{{ s.badge }}</span>
+      <h3>{{ s.name }}</h3>
+      <p><strong>Status:</strong> {{ s.status|upper }}</p>
+      <p style="font-size:0.9rem">{{ s.purpose }}</p>
+      {% if s.evidence_ref %}<div class="ref">{{ s.evidence_ref }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- 5 EVIDENCE VAULT -->
+<section id="vault" class="panel">
+  <h2>Evidence Vault</h2>
+  <p style="color:var(--muted)">Sanitized repository evidence only. No secrets, API keys, or private IPs.</p>
+
+  {% for item in evidence %}
+  <details class="evidence-item">
+    <summary>{{ item.title }} <span class="badge badge-verified">{{ item.badge }}</span></summary>
+    <div class="evidence-body">{% if item.content %}{{ item.content }}{% else %}Not available{% endif %}</div>
+  </details>
+  {% endfor %}
+
+  <h3>THROUGHPUT Candidate Decisions (corrected run)</h3>
+  <table>
+    <tr><th>max_tokens</th><th>temp</th><th>Score</th><th>Decision</th></tr>
+    {% for c in throughput.candidates %}
+    <tr>
+      <td>{{ c.max_tokens }}</td>
+      <td>{{ c.temperature }}</td>
+      <td>{{ c.score }}</td>
+      <td class="decision-{{ c.decision }}">{{ c.decision }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  {% if governor.last_decisions %}
+  <h3>SQLite Decision Log (live read)</h3>
+  <table>
+    <tr><th>Config</th><th>Score</th><th>TTFT</th><th>TPS</th><th>Decision</th></tr>
+    {% for d in governor.last_decisions %}
+    <tr>
+      <td>{{ d.config }}</td>
+      <td>{{ "%.4f"|format(d.score) if d.score else "—" }}</td>
+      <td>{{ "%.2f"|format(d.ttft) if d.ttft else "—" }}</td>
+      <td>{{ "%.2f"|format(d.tps) if d.tps else "—" }}</td>
+      <td class="decision-{{ d.decision }}">{{ d.decision }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+</section>
+
+</main>
+
+<footer>Kayock Local AI Trophy Room v0.1 — contest showcase &amp; observability layer</footer>
+<script src="/static/app.js"></script>
+</body>
+</html>

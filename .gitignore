@@ -1,0 +1,69 @@
+# Secrets and credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+*credentials*
+*secrets*
+
+# Model weights and binaries
+*.gguf
+*.onnx
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.pb
+Models/
+models/
+
+# Databases and private data
+*.db
+*.sqlite
+*.sqlite3
+*.duckdb
+chroma/
+qdrant/
+*.rag/
+
+# Logs (unsanitized originals stay out of repo)
+*.log
+logs/
+journal/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+.npm/
+
+# OS and editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Browser and session data
+cookies*
+*.session
+
+# Certificates (private keys)
+*.csr
+*.srl
+*.mobileconfig

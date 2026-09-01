@@ -95,6 +95,28 @@ python -m governor dashboard
 
 Unsupported metrics report as `unavailable` without failing.
 
+## Verified Measured Results (2026-09-01)
+
+**VERIFIED** — live `python -m governor benchmark` against `gpt-oss-20b-MXFP4` on Quadro P2000.
+
+Full report: [`evidence/benchmark-results-2026-09-01.md`](evidence/benchmark-results-2026-09-01.md)
+
+| Metric | Measured |
+|--------|----------|
+| Config | `max_tokens=128`, `temperature=0.7` |
+| Avg TTFT | 7.15 s |
+| Avg TPS | 7.01 |
+| Avg total time | 8.97 s |
+| Peak VRAM | 3191 MiB |
+| Peak temperature | 57 °C |
+| Errors | 0 |
+
+Per-prompt TTFT ranged **3.62–11.46 s** (first prompt includes model-load penalty). TPS ranged **4.00–10.19**.
+
+**Optimization:** No multi-candidate `LOW_LATENCY` optimization results were persisted (`benchmark_runs` table empty; SQLite decision rows are unit-test artifacts only). Performance **improvement from the optimizer cannot be verified** from stored measurements. Re-run `python -m governor optimize --profile LOW_LATENCY` to generate decision logs.
+
+Post-benchmark service check: Father Fox **active**, Lemonade `/health` **HTTP 200**.
+
 ## Adjustable Parameters (v0.1)
 
 ### Auto-tuned (per-request, safe)

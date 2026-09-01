@@ -1,25 +1,44 @@
 # Verified Tests
 
-## Status: Awaiting Evidence
+## Runtime Evidence — RECOVERED
 
-`AMD_Lemonade_Contest_Evidence_Log.md` was not found on this machine at repository creation time. No formal test results, timestamps, or benchmarks are recorded here.
+**VERIFIED FROM RUNTIME LOG**
 
-## Tests Implied by Source Code
+Journal evidence from `father-fox-voice.service` on **2026-09-01** (00:17:39 – 00:20:46 local time) confirms the full Lemonade ↔ RVC handoff cycle including return to Lemonade.
 
-The following behaviors are implemented in Father Fox and should be verifiable with a live Lemonade + RVC stack, but **have not been captured in this repository**:
+| Test | Result | Evidence |
+|------|--------|----------|
+| Lemonade chat (`Model Only`, `gpt-oss-20b-MXFP4`) | Pass | Journal 00:17:39 |
+| Lemonade model unload | Pass | Journal 00:18:08 |
+| VRAM released for RVC | Pass | Journal 00:18:12 |
+| Ollama GPU clear check | Pass | Journal 00:18:12 |
+| RVC voice request (`/api/talk`) | Pass | Journal 00:18:28 `200 OK` |
+| Return to Lemonade inference | Pass | Journal 00:20:15 |
+| Subsequent normal request | Pass | Journal 00:20:46 `200 OK` |
 
-| Test | Implementation | Evidence |
-|------|----------------|----------|
-| Lemonade chat completion | `ask_father_fox()` Model Only path | Source only |
-| Lemonade model unload | `release_lemonade_gpu_for_rvc()` | Source only |
-| VRAM grace period | `time.sleep(1.0)` after unload | Source only |
-| RVC handoff for special voices | `make_voice()` + `SPECIAL_RVC_VOICES` | Source only |
-| Auto-reload on next request | Comment in `release_lemonade_gpu_for_rvc()` | Assertion only |
-| Whispeer → Lemonade | — | Not found |
+Full excerpt: [`2026-09-01-father-fox-journal.md`](2026-09-01-father-fox-journal.md)
 
-## How to Add Tests
+## Source-Only (Not Re-Executed Here)
 
-1. Run tests against a live local stack
-2. Record results in a new markdown file here
-3. Sanitize all output before committing
-4. Cross-reference entries in `docs/contest-evidence.md`
+| Test | Evidence type |
+|------|---------------|
+| Unload API request shape | **VERIFIED FROM SOURCE CODE** |
+| Special RVC voice list | **VERIFIED FROM SOURCE CODE** |
+| 1-second VRAM grace period | **VERIFIED FROM SOURCE CODE** |
+
+## Not Demonstrated
+
+| Test | Status |
+|------|--------|
+| Whispeer → Lemonade | **PLANNED / FUTURE** |
+| NOMAD → Lemonade | Not applicable (separate backend) |
+| TTFT / TPS benchmarks | Not measured |
+
+## Retrieval
+
+```bash
+journalctl -u father-fox-voice.service \
+  --since "2026-09-01 00:10:00" \
+  --until "2026-09-01 00:30:00" \
+  --no-pager
+```

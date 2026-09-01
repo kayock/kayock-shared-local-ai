@@ -1,41 +1,34 @@
 # Evidence Directory
 
-This directory holds sanitized contest evidence. **No unsanitized logs, credentials, or private data belong here.**
+Sanitized contest evidence for Kayock Shared Local AI.
 
-## What Was Searched
+## Evidence Tiers
 
-At repository creation (September 2026), the following were searched under `/home/kayock`:
+| Label | Meaning |
+|-------|---------|
+| **VERIFIED FROM RUNTIME LOG** | Captured from system journal |
+| **VERIFIED FROM SOURCE CODE** | Confirmed by reading application source |
+| **PLANNED / FUTURE** | Design only |
 
-- `AMD_Lemonade_Contest_Evidence_Log.md` — **not found**
-- Application logs mentioning Lemonade handoff — **not copied** (would require sanitization review)
-- Runtime test results — **not available**
+## Contents
 
-## Directory Structure
-
-| Path | Purpose |
-|------|---------|
-| `verified-tests/` | Formal test outputs (empty — awaiting evidence log) |
-| `sanitized-logs/` | Redacted log excerpts matching known source patterns |
+| Path | Type | Description |
+|------|------|-------------|
+| `verified-tests/2026-09-01-father-fox-journal.md` | Runtime log | Full handoff session (sanitized) |
+| `verified-tests/README.md` | Index | Test result summary |
+| `sanitized-logs/father-fox-log-patterns.md` | Source-derived | Expected log strings from `print()` calls |
 
 ## Policy
 
-1. **Never** copy raw application logs without redacting IPs, tokens, paths with usernames, or private content.
-2. **Never** include model weights, databases, or RAG corpora.
-3. Only add entries that can be traced to a verifiable source file or test run.
-4. Label synthetic/reconstructed examples clearly.
+1. Never copy raw logs without redacting client IPs, tokens, and private paths.
+2. Never include model weights, databases, or RAG corpora.
+3. Distinguish runtime evidence from source-derived patterns.
 
-## Source Files Used for This Repository
+## Source Files Referenced
 
-| File | What Was Extracted |
-|------|-------------------|
-| `/home/kayock/father-fox-hub/app.py` | Lemonade config, chat client, unload/handoff logic |
-| `/home/kayock/father-fox-hub/backups/app.before-lemonade-20260901-000703.py` | Pre-Lemonade RVC handoff (Ollama only) |
-| `/home/kayock/father-fox-hub/backups/app.before-lemonade-rvc-handoff-20260901-001644.py` | Lemonade without unload integration |
+| File | Use |
+|------|-----|
+| `journalctl -u father-fox-voice.service` | Primary runtime evidence |
+| `/home/kayock/father-fox-hub/app.py` | Source code cross-reference |
 
-## Adding Evidence Later
-
-When `AMD_Lemonade_Contest_Evidence_Log.md` is located:
-
-1. Review for secrets and private data
-2. Place a sanitized copy in `verified-tests/`
-3. Update `docs/contest-evidence.md` with entry cross-references
+`AMD_Lemonade_Contest_Evidence_Log.md` was not found on disk; journal excerpts serve as substitute evidence.

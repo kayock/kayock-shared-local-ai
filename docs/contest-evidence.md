@@ -1,12 +1,13 @@
 # Contest Evidence
 
-Evidence is classified into three tiers throughout this repository:
+Evidence is classified throughout this repository so judges can distinguish runtime proof, source verification, experimental measurements, and future work.
 
 | Tier | Label | Meaning |
 |------|-------|---------|
 | 1 | **VERIFIED FROM RUNTIME LOG** | Captured from `journalctl` or equivalent system logs |
-| 2 | **VERIFIED FROM SOURCE CODE** | Confirmed by reading application source (not executed here) |
-| 3 | **PLANNED / FUTURE** | Design intent only; not implemented or demonstrated |
+| 2 | **VERIFIED FROM SOURCE CODE** | Confirmed by reading committed application/reference source |
+| 3 | **VERIFIED EXPERIMENTAL MEASUREMENT** | Captured from a live benchmark/optimization run and preserved as evidence |
+| 4 | **PLANNED / FUTURE** | Design intent only; not demonstrated in this contest repository |
 
 ## Runtime Evidence Recovered
 
@@ -23,7 +24,7 @@ journalctl -u father-fox-voice.service \
 
 Full sanitized excerpt: [`evidence/verified-tests/2026-09-01-father-fox-journal.md`](../evidence/verified-tests/2026-09-01-father-fox-journal.md)
 
-### Key runtime log lines (verbatim message text)
+### Key runtime log lines
 
 ```
 [Father Fox] Model Only -> Lemonade (gpt-oss-20b-MXFP4)
@@ -31,7 +32,7 @@ Full sanitized excerpt: [`evidence/verified-tests/2026-09-01-father-fox-journal.
 [RVC GPU handoff] Lemonade VRAM released for RVC.
 [RVC GPU handoff] GPU already clear of Ollama models.
 POST /api/talk HTTP/1.1" 200 OK
-[Father Fox] Model Only -> Lemonade (gpt-oss-20b-MXFP4)    ← second request (return to Lemonade)
+[Father Fox] Model Only -> Lemonade (gpt-oss-20b-MXFP4)
 POST /api/talk HTTP/1.1" 200 OK
 ```
 
@@ -39,41 +40,66 @@ The second `Model Only -> Lemonade` line at **00:20:15** confirms the full hando
 
 ## Verified from Source Code
 
-The following are **VERIFIED FROM SOURCE CODE** in `/home/kayock/father-fox-hub/app.py`:
+The repository includes cleaned reference extracts of the live Father Fox integration:
 
-| Capability | Source marker |
-|------------|---------------|
-| Lemonade chat for `Model Only` collection | `FATHER_FOX_LEMONADE_MODEL_ONLY_V1` |
-| `POST /v1/unload` with `model_name` | `FATHER_FOX_LEMONADE_RVC_HANDOFF_V1` |
-| RVC handoff for special voices | `FATHER_FOX_RVC_GPU_HANDOFF_V1` |
-| 1-second VRAM grace period | `time.sleep(1.0)` in unload functions |
-| Auto-reload comment on next request | Comment in `release_lemonade_gpu_for_rvc()` |
+| Capability | Reference |
+|------------|-----------|
+| Lemonade chat for `Model Only` | [`integrations/father-fox/lemonade_chat.py`](../integrations/father-fox/lemonade_chat.py) |
+| `POST /v1/unload` with `model_name` | [`integrations/rvc-handoff/lemonade_unload.py`](../integrations/rvc-handoff/lemonade_unload.py) |
+| RVC handoff for special voices | Same unload/handoff reference |
+| 1-second VRAM grace period | `VRAM_GRACE_SECONDS = 1.0` |
+| Return to Lemonade on later request | Corroborated by runtime journal at 00:20:15 |
 
-Runtime journal evidence now corroborates the auto-reload behavior that was previously source-comment-only.
+## Verified Experimental Measurements — Governor
 
-## Search Performed (Initial Repository Creation)
+The Kayock AI Resource Governor is an **implemented experimental prototype** with committed source, automated tests, and live measurement evidence.
 
-| Item | Result |
+### Benchmark harness
+
+[`governor/evidence/benchmark-results-2026-09-01.md`](../governor/evidence/benchmark-results-2026-09-01.md) records a live three-prompt run against `gpt-oss-20b-MXFP4` on the Quadro P2000:
+
+- Avg TTFT: **7.15 s**
+- Avg generation throughput: **7.01 tokens/s**
+- Peak VRAM: **3191 MiB**
+- Peak temperature: **57 °C**
+- Errors: **0**
+
+These are benchmark measurements, not values inferred from journal gaps.
+
+### Corrected THROUGHPUT optimization
+
+[`governor/evidence/throughput-optimization-2026-09-01.md`](../governor/evidence/throughput-optimization-2026-09-01.md) records the corrected live optimizer run after commit `d682462` fixed an order-dependent global-best bug.
+
+| Field | Baseline | Winner |
+|-------|----------|--------|
+| `max_tokens` | 512 | 480 |
+| `temperature` | 0.7 | 0.7 |
+| Composite score | 14.639872171624882 | 15.25802453529699 |
+| Composite-score improvement | — | **~+4.22%** |
+| Winner TTFT | — | 6.7409 s |
+| Winner TPS | — | 7.4384 |
+
+The **+4.22% figure refers to the deterministic composite THROUGHPUT score**, not a claim that raw tokens/second alone increased by 4.22%.
+
+The earlier pre-fix optimizer run is explicitly excluded from contest evidence.
+
+## Trophy Room
+
+The Trophy Room is a read-only local contest dashboard that surfaces committed evidence, verified constants, service state, and GPU telemetry. It runs locally on port `8771`; `127.0.0.1` is not a public hosted showcase URL.
+
+See [`trophy-room/README.md`](../trophy-room/README.md).
+
+## Not Demonstrated in This Contest Repository
+
+| Item | Status |
 |------|--------|
-| `AMD_Lemonade_Contest_Evidence_Log.md` | **Not found** on disk |
-| `/home/kayock/kayock-social-agent` | **Directory does not exist** |
-| `journalctl -u father-fox-voice.service` | **Runtime evidence recovered** (see above) |
-| `journalctl --user -u father-fox-voice.service` | No entries for test window |
-
-## Not Verified / Not Demonstrated
-
-| Claim | Status |
-|-------|--------|
-| Whispeer using Lemonade | **PLANNED / FUTURE** — no source on this machine |
-| NOMAD as Lemonade client | Uses separate RAG backend; not part of Lemonade demo |
-| Runtime benchmarks (TTFT, TPS) | Not measured; only wall-clock gaps between journal lines |
-| Multiple independent apps sharing Lemonade | Only Father Fox + RVC workload demonstrated |
-| Kayock AI Resource Governor | **PLANNED / FUTURE** |
-
-## Missing Evidence File
-
-`AMD_Lemonade_Contest_Evidence_Log.md` was not found under `/home/kayock`. Runtime journal excerpts substitute for formal test documentation.
+| Whispeer as a demonstrated Lemonade client | **PLANNED / FUTURE** |
+| NOMAD as a demonstrated Lemonade client | **PLANNED / FUTURE** |
+| Comic Reader integration | **PLANNED / not part of submitted contest evidence** |
+| Audio Notebook integration | **PLANNED / not part of submitted contest evidence** |
+| Automatic Governor → Father Fox config push | **PLANNED** |
+| LOW_LATENCY live optimization evidence | **NOT DOCUMENTED AS CONTEST EVIDENCE** |
 
 ## Evidence Repository Policy
 
-See [`evidence/README.md`](../evidence/README.md).
+See [`evidence/README.md`](../evidence/README.md). Unsanitized logs, credentials, model weights, databases, and private data are excluded from the public repository.

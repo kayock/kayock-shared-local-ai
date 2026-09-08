@@ -9,7 +9,7 @@ Visually demonstrate Kayock Shared Local AI within seconds:
 - Verified milestones (Father Fox, Lemonade, RVC handoff, Governor)
 - Live read-only GPU telemetry
 - GPU handoff lifecycle with runtime evidence timestamps
-- Governor THROUGHPUT optimization (+4.22% verified)
+- Governor THROUGHPUT optimization (**+4.22% composite score**, verified)
 - Sanitized evidence vault
 
 ## Architecture
@@ -96,8 +96,8 @@ Port **8771** does not conflict with Father Fox (8765), RVC (8766), Governor (87
 | Kayock Voice RVC | **ONLINE** on :8766 |
 | Whispeer | **PLANNED** — no source |
 | NOMAD | **PLANNED** |
-| Comic Reader | **PLANNED** — source at ~/ocr-lab, not running |
-| Audio Notebook | **PLANNED** — source at ~/erics-notebook-portable-deploy |
+| Comic Reader | **PLANNED** — not part of this contest evidence |
+| Audio Notebook | **PLANNED** — not part of this contest evidence |
 
 ## Security
 
@@ -119,4 +119,6 @@ PYTHONPATH=trophy-room:. pytest trophy-room/tests/ -v
 
 - **VERIFIED** — backed by committed runtime evidence
 - **VERIFIED EXPERIMENTAL** — Governor v0.1 with live optimization evidence
-- **PLANNED** — not demonstrated or not running locally
+- **PLANNED** — not demonstrated in this contest repository
+
+The Governor's reported **+4.22%** is the improvement in its deterministic composite THROUGHPUT score from the corrected live optimizer run. Raw TPS and TTFT are reported separately.

@@ -19,12 +19,11 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install test dependencies
+      - name: Install Governor package and test dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r governor/requirements.txt
+          pip install -e "./governor[dev]"
           pip install -r trophy-room/requirements.txt
-          pip install pytest
 
       - name: Run automated tests
         run: pytest trophy-room/tests/ governor/tests/

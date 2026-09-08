@@ -19,7 +19,7 @@
     <div class="summary-chip"><div class="label">Governor</div><div class="value" id="live-governor">…</div></div>
     <div class="summary-chip"><div class="label">Father Fox</div><div class="value" id="live-father-fox">…</div></div>
     <div class="summary-chip"><div class="label">RVC Handoff</div><div class="value online">VERIFIED</div></div>
-    <div class="summary-chip"><div class="label">Optimization</div><div class="value online">+{{ throughput.improvement_pct }}% VERIFIED</div></div>
+    <div class="summary-chip"><div class="label">THROUGHPUT composite score</div><div class="value online">+{{ throughput.improvement_pct }}% VERIFIED</div></div>
   </div>
 </header>
 
@@ -50,9 +50,9 @@
   <div class="governor-panel">
     <h2>Governor Panel — THROUGHPUT <span class="badge badge-verified">VERIFIED</span></h2>
     <div class="metrics-grid">
-      <div class="metric"><div class="val">{{ "%.4f"|format(governor.throughput.baseline_score) }}</div><div class="lbl">Baseline score</div></div>
-      <div class="metric"><div class="val">{{ "%.4f"|format(governor.throughput.best_score) }}</div><div class="lbl">Best score</div></div>
-      <div class="metric"><div class="val">+{{ governor.throughput.improvement_pct }}%</div><div class="lbl">Improvement</div></div>
+      <div class="metric"><div class="val">{{ "%.4f"|format(governor.throughput.baseline_score) }}</div><div class="lbl">Baseline composite score</div></div>
+      <div class="metric"><div class="val">{{ "%.4f"|format(governor.throughput.best_score) }}</div><div class="lbl">Best composite score</div></div>
+      <div class="metric"><div class="val">+{{ governor.throughput.improvement_pct }}%</div><div class="lbl">Composite-score improvement</div></div>
       <div class="metric"><div class="val">{{ governor.throughput.winner.max_tokens }}</div><div class="lbl">Winner max_tokens</div></div>
       <div class="metric"><div class="val">{{ governor.throughput.winner.temperature }}</div><div class="lbl">Winner temp</div></div>
       <div class="metric"><div class="val">{{ governor.test_count }}</div><div class="lbl">Unit tests</div></div>
@@ -90,7 +90,7 @@
       <tr><th>Metric</th><th>Value</th></tr>
       <tr><td>TTFT</td><td>{{ "%.2f"|format(throughput.winner_ttft) }} s</td></tr>
       <tr><td>TPS</td><td>{{ "%.2f"|format(throughput.winner_tps) }}</td></tr>
-      <tr><td>Score</td><td>{{ "%.4f"|format(throughput.best_score) }}</td></tr>
+      <tr><td>Composite score</td><td>{{ "%.4f"|format(throughput.best_score) }}</td></tr>
     </table>
   </div>
 </section>
@@ -156,7 +156,7 @@
 
   <h3>THROUGHPUT Candidate Decisions (corrected run)</h3>
   <table>
-    <tr><th>max_tokens</th><th>temp</th><th>Score</th><th>Decision</th></tr>
+    <tr><th>max_tokens</th><th>temp</th><th>Composite score</th><th>Decision</th></tr>
     {% for c in throughput.candidates %}
     <tr>
       <td>{{ c.max_tokens }}</td>
@@ -170,7 +170,7 @@
   {% if governor.last_decisions %}
   <h3>SQLite Decision Log (live read)</h3>
   <table>
-    <tr><th>Config</th><th>Score</th><th>TTFT</th><th>TPS</th><th>Decision</th></tr>
+    <tr><th>Config</th><th>Composite score</th><th>TTFT</th><th>TPS</th><th>Decision</th></tr>
     {% for d in governor.last_decisions %}
     <tr>
       <td>{{ d.config }}</td>

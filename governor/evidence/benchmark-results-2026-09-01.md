@@ -34,18 +34,20 @@ First prompt TTFT (11.46 s) includes **cold-start / model-load penalty**; subseq
 
 | Result | Value |
 |--------|-------|
-| Baseline score | 14.64 |
+| Baseline composite score | 14.64 |
 | Winning config | `max_tokens=480`, `temperature=0.7` |
-| Winning score | 15.26 (~4.22% improvement) |
+| Winning composite score | 15.26 (~4.22% improvement) |
 | Winner TTFT / TPS | 6.74 s / 7.44 |
 
 An earlier pre-`d682462` THROUGHPUT run produced incorrect results and is **not** contest evidence.
 
 `LOW_LATENCY` multi-candidate optimization was not separately documented at time of initial benchmark capture.
 
-## Scoring
+## Benchmark vs Optimizer Scoring
 
-Composite optimizer scores were **not recorded** for this live benchmark run (benchmark-only command does not compute scores). Scores exist only in mocked unit tests.
+The standalone `python -m governor benchmark` command measures latency, throughput, VRAM, temperature, and errors; it does **not** compute the optimizer's composite score by itself. Composite scores are computed by the optimizer/scorer path and are recorded in the corrected live THROUGHPUT optimization evidence.
+
+The reported **~+4.22%** refers to improvement in that deterministic composite THROUGHPUT score, not a claim that raw tokens/second alone increased by 4.22%.
 
 ## Service Health After Benchmark
 

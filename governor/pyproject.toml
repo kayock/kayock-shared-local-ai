@@ -18,9 +18,15 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=7.0"]
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["kayock_governor*"]
+# pyproject.toml lives inside the governor package directory. Map that
+# directory explicitly to the installed package name instead of searching for
+# a nonexistent kayock_governor/ subdirectory.
+[tool.setuptools]
+packages = ["governor"]
+package-dir = {governor = "."}
+
+[tool.setuptools.package-data]
+governor = ["prompts/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

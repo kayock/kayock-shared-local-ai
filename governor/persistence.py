@@ -10,12 +10,14 @@ from datetime import datetime, timezone
 from typing import Any, Iterator
 
 from governor.benchmark import BenchmarkRun
-from governor.config import DB_PATH, ensure_data_dir
+from governor import config
 
 
 def _connect() -> sqlite3.Connection:
-    ensure_data_dir()
-    conn = sqlite3.connect(DB_PATH)
+    # Resolve config dynamically so tests and callers can safely override
+    # DB_PATH/DATA_DIR without stale import-time copies.
+    config.ensure_data_dir()
+    conn = sqlite3.connect(config.DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 

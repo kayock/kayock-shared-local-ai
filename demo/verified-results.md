@@ -2,7 +2,7 @@
 
 Single reference page for judges. Every row links to committed evidence. **Pre-fix optimizer results are not contest performance evidence.**
 
-Release: tag **`contest-v0.3-trophy-room`**
+Latest frozen fact-checked demo tag: **`contest-v0.3.3-factchecked-demo`**. The `main` branch may contain later documentation and CI polish.
 
 ---
 
@@ -43,7 +43,7 @@ Release: tag **`contest-v0.3-trophy-room`**
 | Bounded optimizer (max_tokens, temperature) | [Governor README](../governor/README.md) — safety model |
 | REJECT / KEEP / NOT_BEST decisions | [Throughput optimization](../governor/evidence/throughput-optimization-2026-09-01.md) — candidate table |
 | Saved winning profile | Same file — `saved_profiles.THROUGHPUT` = `{480, 0.7}` |
-| Corrected +4.22% THROUGHPUT improvement | Same file — see metrics below |
+| Corrected +4.22% **composite THROUGHPUT score** improvement | Same file — see metrics below |
 | Optimizer bug fix + regression tests | Commit `d682462`, [governor/tests/test_optimizer.py](../governor/tests/test_optimizer.py) |
 | Governor architecture | [governor/README.md](../governor/README.md) |
 
@@ -53,15 +53,15 @@ Release: tag **`contest-v0.3-trophy-room`**
 |---|----------|--------|
 | `max_tokens` | 512 | **480** |
 | `temperature` | 0.7 | **0.7** |
-| Score | **14.639872171624882** | **15.25802453529699** |
-| Improvement | — | **~+4.22%** |
+| Composite score | **14.639872171624882** | **15.25802453529699** |
+| Composite-score improvement | — | **~+4.22%** |
 | TTFT (avg) | — | **6.7409 s** |
 | TPS (avg) | — | **7.4384** |
 
 ### Candidate Decisions (corrected run)
 
-| # | Config | Score | Decision |
-|---|--------|-------|----------|
+| # | Config | Composite score | Decision |
+|---|--------|-----------------|----------|
 | — | `{512, 0.7}` | 14.6399 | baseline |
 | 1 | `{480, 0.6}` | 14.3498 | **REJECT** |
 | 2 | `{480, 0.7}` | 15.2580 | **KEEP** |
@@ -77,16 +77,18 @@ Release: tag **`contest-v0.3-trophy-room`**
 | Trophy Room | 10 | `trophy-room/tests/` |
 | **Total** | **26** | Run: `pytest trophy-room/tests/ governor/tests/` |
 
+The repository also includes GitHub Actions CI on `main` to run these test suites automatically.
+
 ---
 
 ## VERIFIED SHOWCASE — Trophy Room
 
 | Claim | Evidence |
 |-------|----------|
-| Read-only contest dashboard (:8771) | [trophy-room/README.md](../trophy-room/README.md) |
+| Read-only local contest dashboard (:8771) | [trophy-room/README.md](../trophy-room/README.md) |
 | Five views (Trophy Room, Model Arena, GPU Handoff, Clients, Evidence Vault) | Same |
 | Sanitized evidence display | [trophy-room/adapters/evidence.py](../trophy-room/adapters/evidence.py) |
-| Verified constants (+4.22%, handoff timeline) | [trophy-room/config.py](../trophy-room/config.py) |
+| Verified constants (+4.22% composite score, handoff timeline) | [trophy-room/config.py](../trophy-room/config.py) |
 
 ---
 
@@ -105,9 +107,9 @@ Release: tag **`contest-v0.3-trophy-room`**
 
 ```
 evidence/verified-tests/2026-09-01-father-fox-journal.md   ← GPU handoff
-governor/evidence/benchmark-results-2026-09-01.md            ← benchmark harness
-governor/evidence/throughput-optimization-2026-09-01.md      ← +4.22% optimizer
-docs/gpu-handoff.md                                        ← architecture
-trophy-room/README.md                                      ← live demo
-demo/README.md                                               ← you are here
+governor/evidence/benchmark-results-2026-09-01.md          ← benchmark harness
+governor/evidence/throughput-optimization-2026-09-01.md    ← +4.22% composite optimizer score
+docs/gpu-handoff.md                                       ← architecture
+trophy-room/README.md                                     ← local demo
+demo/README.md                                            ← judge entry point
 ```

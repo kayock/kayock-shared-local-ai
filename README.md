@@ -2,7 +2,7 @@
 
 **Lemonade inference and specialized RVC workloads dynamically sharing constrained local GPU resources.**
 
-Entry for the [AMD Lemonade Developer Challenge](https://www.amd.com/en/developer/resources/technical-articles/2025/amd-lemonade-developer-challenge.html). This repository documents and demonstrates — with **runtime journal evidence** — how Father Fox Voice Hub coordinates Lemonade LLM inference (`gpt-oss-20b-MXFP4`) and RVC character voice synthesis on a single 4 GB GPU.
+Entry for the [2026 AMD Lemonade Developer Challenge](https://www.amd.com/en/developer/resources/technical-articles/2026/join-the-lemonade-developer-challenge.html). This repository documents and demonstrates — with **runtime journal evidence** — how Father Fox Voice Hub coordinates Lemonade LLM inference (`gpt-oss-20b-MXFP4`) and RVC character voice synthesis on a single 4 GB GPU.
 
 Lemonade is the OpenAI-compatible local runtime/API layer. The project runs on consumer hardware (verified on NVIDIA Quadro P2000); it is not limited to AMD GPUs.
 
@@ -17,7 +17,9 @@ Lemonade is the OpenAI-compatible local runtime/API layer. The project runs on c
 | Recording runbook | [demo/demo-runbook.md](demo/demo-runbook.md) |
 | Submission copy | [demo/contest-summary.md](demo/contest-summary.md) |
 | Verified results | [demo/verified-results.md](demo/verified-results.md) |
-| Live showcase | [Trophy Room](trophy-room/README.md) — `http://127.0.0.1:8771` |
+| Local showcase | [Trophy Room](trophy-room/README.md) — runs locally at `http://127.0.0.1:8771` |
+
+Latest frozen fact-checked demo tag: **`contest-v0.3.3-factchecked-demo`**. `main` may contain later documentation and CI polish.
 
 ## What Is Verified Here
 
@@ -29,14 +31,14 @@ Lemonade is the OpenAI-compatible local runtime/API layer. The project runs on c
 | Return to Lemonade on next request | **Verified** | Runtime log (2026-09-01 00:20:15) |
 | RVC `/api/talk` success after handoff | **Verified** | Runtime log (`200 OK`) |
 | Whispeer / additional Lemonade clients | **Not demonstrated** | Planned — source absent locally |
-| Kayock AI Resource Governor | **Planned** | Design only |
+| Kayock AI Resource Governor | **Verified experimental prototype** | Source + tests + live benchmark/optimization evidence |
 
 Evidence file: [`evidence/verified-tests/2026-09-01-father-fox-journal.md`](evidence/verified-tests/2026-09-01-father-fox-journal.md)
 
 ## Why This Matters
 
 - **Local-first AI** — Voice conversations stay on your machine. Lemonade serves the LLM; Father Fox handles speech I/O.
-- **Resource-constrained hardware** — A 4 GB GPU cannot hold a 20B model and RVC weights simultaneously. This project proves cooperative sharing instead of cloud offload.
+- **Resource-constrained hardware** — On the verified 4 GB Quadro P2000 setup, the 20B Lemonade model allocation and RVC voice workload cannot remain resident together. This project proves cooperative sharing instead of cloud offload.
 - **Cooperative GPU use** — Explicit `POST /v1/unload` before RVC, automatic model reload on the next chat request. No Lemonade restart required.
 - **Open-source reusable pattern** — Reference clients in [`integrations/`](integrations/) extract the handoff logic for adoption in other local apps.
 - **No cloud inference required** — The verified session used only local Lemonade, Father Fox, and Kayock Voice RVC.
@@ -120,7 +122,7 @@ kayock-shared-local-ai/
 ├── evidence/
 │   ├── verified-tests/   # runtime journal excerpts
 │   └── sanitized-logs/
-└── governor/             # AI Resource Governor (experimental on governor-v0.1)
+└── governor/             # AI Resource Governor (experimental)
     ├── README.md
     └── ...               # python -m governor CLI
 ```
@@ -143,14 +145,14 @@ Follow [`docs/demo-script.md`](docs/demo-script.md) for a 2–3 minute contest v
 
 Verified on a **NVIDIA Quadro P2000 (4 GB VRAM)**. Lemonade serves `gpt-oss-20b-MXFP4`; RVC character voices require a separate GPU allocation — coordinated via explicit unload.
 
-## Kayock AI Resource Governor (governor-v0.1 branch)
+## Kayock AI Resource Governor
 
 **VERIFIED** telemetry, benchmark harness, and corrected THROUGHPUT optimizer on live Lemonade (`gpt-oss-20b-MXFP4`).
 
 | Evidence | Result |
 |----------|--------|
 | Benchmark harness | avg TTFT 7.15 s, TPS 7.01 — [`governor/evidence/benchmark-results-2026-09-01.md`](governor/evidence/benchmark-results-2026-09-01.md) |
-| THROUGHPUT optimizer | **+4.22%** score → `{480, 0.7}` — [`governor/evidence/throughput-optimization-2026-09-01.md`](governor/evidence/throughput-optimization-2026-09-01.md) |
+| THROUGHPUT optimizer | **+4.22% composite score** → `{480, 0.7}` — [`governor/evidence/throughput-optimization-2026-09-01.md`](governor/evidence/throughput-optimization-2026-09-01.md) |
 
 An order-dependent global-best bug was found during live testing and fixed in commit `d682462`.
 
@@ -163,9 +165,9 @@ python -m governor optimize --profile THROUGHPUT
 
 See [`governor/README.md`](governor/README.md) for architecture, safety model, and commands.
 
-## Kayock Local AI Trophy Room (trophy-room-v0.1 branch)
+## Kayock Local AI Trophy Room
 
-**Contest showcase dashboard** at **http://127.0.0.1:8771** — observability only, not an AI runtime.
+**Contest showcase dashboard** at **http://127.0.0.1:8771** when run locally — observability only, not an AI runtime.
 
 ```bash
 pip install -r trophy-room/requirements.txt

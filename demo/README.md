@@ -3,7 +3,7 @@
 **One Lemonade server. Multiple local-AI workloads.**  
 **Shared hardware. No cloud required.**
 
-This folder is the judge-friendly entry point for the [AMD Lemonade Developer Challenge](https://www.amd.com/en/developer/resources/technical-articles/2025/amd-lemonade-developer-challenge.html). Everything here is grounded in **verified runtime evidence** already committed in this repository — no fabricated metrics, no cloud inference, no exaggerated claims.
+This folder is the judge-friendly entry point for the [2026 AMD Lemonade Developer Challenge](https://www.amd.com/en/developer/resources/technical-articles/2026/join-the-lemonade-developer-challenge.html). Everything here is grounded in **verified runtime evidence** already committed in this repository — no fabricated metrics, no cloud inference, no exaggerated claims.
 
 ## Start Here
 
@@ -13,9 +13,9 @@ This folder is the judge-friendly entry point for the [AMD Lemonade Developer Ch
 | [demo-runbook.md](demo-runbook.md) | Step-by-step recording checklist |
 | [contest-summary.md](contest-summary.md) | Submission-ready descriptions (short, ~100-word, ~250-word) |
 | [verified-results.md](verified-results.md) | Authoritative list of verified results with evidence links |
-| [screenshots/README.md](screenshots/README.md) | Screenshot capture checklist (placeholders only) |
+| [screenshots/README.md](screenshots/README.md) | Screenshot capture checklist |
 
-**Live showcase:** [Kayock Local AI Trophy Room](../trophy-room/README.md) at **http://127.0.0.1:8771**
+**Local showcase:** [Kayock Local AI Trophy Room](../trophy-room/README.md), served at **http://127.0.0.1:8771** when run on the project machine.
 
 ---
 
@@ -23,7 +23,7 @@ This folder is the judge-friendly entry point for the [AMD Lemonade Developer Ch
 
 ### 1. Dynamic GPU Handoff
 
-On a **4 GB GPU**, a 20B Lemonade model and RVC voice weights cannot coexist. Father Fox Voice Hub coordinates explicit handoff:
+On the verified **4 GB Quadro P2000 configuration**, the resident 20B Lemonade model allocation and the RVC voice workload cannot remain on the GPU together. Father Fox Voice Hub coordinates explicit handoff:
 
 ```
 Father Fox
@@ -55,7 +55,7 @@ Reference integration code: [`integrations/father-fox/`](../integrations/father-
 
 ### 2. Kayock AI Resource Governor
 
-The Governor is a **safe, read-only** local prototype that helps squeeze more throughput from Lemonade on constrained hardware. It:
+The Governor is a **safe local experimental prototype** that helps evaluate software-level settings for Lemonade on constrained hardware. It:
 
 - **Monitors** GPU and system state (nvidia-smi, psutil)
 - **Benchmarks** Lemonade with a fixed prompt harness
@@ -72,8 +72,8 @@ The Governor is a **safe, read-only** local prototype that helps squeeze more th
 |---|----------|--------|
 | `max_tokens` | 512 | **480** |
 | `temperature` | 0.7 | **0.7** |
-| Score | **14.639872171624882** | **15.25802453529699** |
-| Improvement | — | **~+4.22%** |
+| Composite score | **14.639872171624882** | **15.25802453529699** |
+| Composite-score improvement | — | **~+4.22%** |
 | TTFT (avg) | — | **6.7409 s** |
 | TPS (avg) | — | **7.4384** |
 
@@ -99,12 +99,10 @@ Governor docs: [`governor/README.md`](../governor/README.md)
 |------------|--------|
 | Father Fox → Lemonade → RVC GPU handoff | **VERIFIED** |
 | Return to Lemonade after RVC | **VERIFIED** |
-| Kayock AI Resource Governor (telemetry, benchmark, optimizer) | **VERIFIED** |
+| Kayock AI Resource Governor (telemetry, benchmark, optimizer) | **VERIFIED experimental prototype** |
 | Kayock Local AI Trophy Room (observability dashboard) | **VERIFIED** |
-| Whispeer, NOMAD, Comic Reader, Audio Notebook | **PLANNED** — not demonstrated |
+| Whispeer, NOMAD, Comic Reader, Audio Notebook | **PLANNED / not demonstrated in this contest repository** |
 
-## Release Tag
+## Release Reference
 
-Contest-ready release: **`contest-v0.3-trophy-room`**
-
-Includes verified Lemonade/RVC GPU handoff, Governor v0.1, corrected +4.22% THROUGHPUT optimization, and Trophy Room.
+Latest frozen fact-checked demo tag: **`contest-v0.3.3-factchecked-demo`**. The `main` branch may contain later documentation and CI polish without changing the underlying verified evidence.
